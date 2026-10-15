@@ -2642,3 +2642,16 @@ preview	Title	Naslov
 	Body font:	Font tijela teksta:
 	Background:	Pozadina:
 	Accent {n}:	Isticanje {n}:
+	On this computer	Na ovom računalu
+	LanguageTool online	LanguageTool na mreži
+	API key:	API ključ:
+	Check spelling and grammar with LanguageTool	Provjeri pravopis i gramatiku pomoću alata LanguageTool
+	Detect automatically	Otkrij automatski
+	Each paragraph's proofing language	Jezik provjere svakog odlomka
+	Language:	Jezik:
+	LanguageTool checking needs the desktop app; the browser version can't send text to a checking server yet.	Provjera pomoću alata LanguageTool zahtijeva aplikaciju za stolna računala; verzija za preglednik još ne može slati tekst poslužitelju za provjeru.
+	Paragraphs checked: {count}	Provjereni odlomci: {count}
+	Sends the text of your paragraphs to the LanguageTool server below. Off, WordCraft's built-in checker is used and nothing leaves this computer.	Šalje tekst vaših odlomaka poslužitelju LanguageTool navedenom u nastavku. Kada je isključeno, koristi se ugrađena provjera programa WordCraft i ništa ne napušta ovo računalo.
+	Server:	Poslužitelj:
+	Use your own LanguageTool server by entering its address, such as http://localhost:8081.	Upotrijebite vlastiti poslužitelj LanguageTool unosom njegove adrese, npr. http://localhost:8081.
+	Username:	Korisničko ime:
