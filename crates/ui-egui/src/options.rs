@@ -357,6 +357,9 @@ fn language_name(lang: wordcraft_engine::proof::ProofLang) -> &'static str {
 /// text goes to the chosen server. The fields edit the settings directly (a half-typed address
 /// only takes effect once it's a web address); the switch and language go through
 /// `ui.languageTool`.
+/// A LanguageTool server on this computer, at the port its documentation uses.
+const LOCAL_LANGUAGETOOL: &str = "http://localhost:8081";
+
 fn language_tool(app: &mut WordApp, ui: &mut Ui) {
     use wordcraft_languagetool::{DEFAULT_SERVER, http};
     let mut on = app.ui.language_tool.enabled;
@@ -375,9 +378,25 @@ fn language_tool(app: &mut WordApp, ui: &mut Ui) {
         .small()
         .weak(),
     );
-    let s = &mut app.ui.language_tool;
+    // The two usual servers in one click: a LanguageTool server on this computer (text stays
+    // here) or LanguageTool's own. Any other address goes in the field below.
+    let same = |a: &str, b: &str| a.trim().trim_end_matches('/').eq_ignore_ascii_case(b);
+    let server = app.ui.language_tool.server.clone();
+    let (local, online) = (same(&server, LOCAL_LANGUAGETOOL), server.trim().is_empty() || same(&server, DEFAULT_SERVER));
     ui.horizontal(|ui| {
         ui.label(tl!("Server:"));
+        for (on, label, address) in [(local, "On this computer", LOCAL_LANGUAGETOOL), (online, "LanguageTool online", DEFAULT_SERVER)] {
+            if ui.radio(on, tl!(label)).clicked()
+                && !on
+                && let Err(e) = app.run("ui.languageTool", json!({"server": address}))
+            {
+                app.status(e);
+            }
+        }
+    });
+    let s = &mut app.ui.language_tool;
+    ui.horizontal(|ui| {
+        ui.label(tl!("Address:"));
         ui.add(egui::TextEdit::singleline(&mut s.server).hint_text(DEFAULT_SERVER).desired_width(300.0));
     });
     ui.label(egui::RichText::new(tl!("Use your own LanguageTool server by entering its address, such as http://localhost:8081.")).small().weak());
