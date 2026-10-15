@@ -53,6 +53,7 @@ pub mod pl;
 pub mod pt;
 pub mod ru;
 pub mod tr;
+pub mod variant;
 pub mod vi;
 
 use std::collections::HashSet;
@@ -452,22 +453,38 @@ pub fn suggest(word: &str, max: usize) -> Vec<String> {
         }
     }
     scored.sort_by(|a, b| (a.0, a.1, a.2.len().abs_diff(n)).cmp(&(b.0, b.1, b.2.len().abs_diff(n))).then(a.2.cmp(&b.2)));
-    let cap = word.chars().next().is_some_and(char::is_uppercase);
-    let upper = word.chars().all(|c| !c.is_lowercase());
-    scored
-        .into_iter()
-        .take(max)
-        .map(|(_, _, w)| {
-            if upper && n > 1 {
-                w.to_uppercase()
-            } else if cap {
-                let mut c = w.chars();
-                c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or(w)
-            } else {
-                w
-            }
-        })
-        .collect()
+    scored.into_iter().take(max).map(|(_, _, w)| cased_like(word, w)).collect()
+}
+
+/// Lowercase `w` in the capitalisation of `word` (`Color` → `Colour`, `COLOR` → `COLOUR`).
+fn cased_like(word: &str, w: String) -> String {
+    if word.chars().count() > 1 && word.chars().all(|c| !c.is_lowercase()) {
+        w.to_uppercase()
+    } else if word.chars().next().is_some_and(char::is_uppercase) {
+        let mut c = w.chars();
+        c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or(w)
+    } else {
+        w
+    }
+}
+
+/// The spelling English (United States) or (United Kingdom) uses for `word` when `word` is the
+/// other region's (`color` in en-GB → `colour`); `None` when `word` is fine in `lang`. Words in
+/// the user dictionary or ignored are fine.
+fn regional_spelling(word: &str, lang: ProofLang) -> Option<String> {
+    let w = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '\'').trim_matches('\'');
+    let lower = w.to_lowercase();
+    let other = match lang {
+        ProofLang::EnUs => variant::us_of(&lower),
+        ProofLang::EnGb => variant::british_of(&lower),
+        _ => None,
+    }?;
+    if user_words().read().unwrap_or_else(|e| e.into_inner()).contains(&lower)
+        || ignored_words().read().unwrap_or_else(|e| e.into_inner()).contains(&lower)
+    {
+        return None;
+    }
+    Some(cased_like(w, other.to_string()))
 }
 
 /// Optimal string alignment distance, early-exit at 3.
@@ -587,7 +604,7 @@ fn enclosing_token(text: &str, a: usize, b: usize) -> (usize, usize, bool) {
 fn spelling_issue(text: &str, a: usize, b: usize, lang: ProofLang, opts: &Options, internet: bool) -> Option<Issue> {
     let w = text.get(a..b)?;
     // A word with a Vietnamese-only letter (a name like Nguyễn in English text) isn't English.
-    if (opts.ignore_internet && internet) || (lang == ProofLang::En && vi::is_vietnamese_word(w)) || is_correct_in_with(w, lang, opts) {
+    if (opts.ignore_internet && internet) || (lang.is_english() && vi::is_vietnamese_word(w)) || is_correct_in_with(w, lang, opts) {
         return None;
     }
     let message = match lang {
@@ -612,6 +629,9 @@ pub fn is_correct_in(word: &str, lang: ProofLang) -> bool {
 pub fn is_correct_in_with(word: &str, lang: ProofLang, opts: &Options) -> bool {
     match lang {
         ProofLang::En => is_correct_with(word, opts),
+        ProofLang::EnUs | ProofLang::EnGb => {
+            is_correct_with(word, opts) && (accepted_by_options(word, opts) || regional_spelling(word, lang).is_none())
+        }
         ProofLang::Pl => accepted_by_options(word, opts) || pl::is_correct(word),
         ProofLang::Hr => accepted_by_options(word, opts) || hr::is_correct(word),
         ProofLang::Pt => accepted_by_options(word, opts) || pt::is_correct(word),
@@ -627,6 +647,17 @@ pub fn is_correct_in_with(word: &str, lang: ProofLang, opts: &Options) -> bool {
 pub fn suggest_in(word: &str, max: usize, lang: ProofLang) -> Vec<String> {
     match lang {
         ProofLang::En => suggest(word, max),
+        // The region's own spelling first; never the other region's.
+        ProofLang::EnUs | ProofLang::EnGb => {
+            let mut v: Vec<String> = regional_spelling(word, lang).into_iter().collect();
+            for s in suggest(word, max + 1) {
+                if regional_spelling(&s, lang).is_none() && !v.contains(&s) {
+                    v.push(s);
+                }
+            }
+            v.truncate(max);
+            v
+        }
         ProofLang::Pl => pl::suggest(word, max),
         ProofLang::Hr => hr::suggest(word, max),
         ProofLang::Pt => pt::suggest(word, max),
@@ -643,7 +674,7 @@ pub fn suggest_in(word: &str, max: usize, lang: ProofLang) -> Vec<String> {
 /// the Turkish ones ([`tr::grammar`]), Czech generic checks ([`cs::grammar`]), or none for a language WordCraft doesn't proof.
 pub fn check_grammar_in(text: &str, lang: ProofLang) -> Vec<Issue> {
     match lang {
-        ProofLang::En => check_grammar(text),
+        ProofLang::En | ProofLang::EnUs | ProofLang::EnGb => check_grammar(text),
         ProofLang::Pl => pl::grammar::check(text),
         ProofLang::Hr => hr::grammar::check(text),
         ProofLang::Pt => pt::grammar::check(text),
@@ -681,7 +712,7 @@ pub fn check_text_with(text: &str, spans: &[(Range<usize>, ProofLang)], opts: &O
     // A paragraph typed in Vietnamese under the default English language is Vietnamese, which
     // has no proofing tools: no marks (Word detects the language the same way).
     let default = if vi::looks_vietnamese(text) {
-        for (_, l) in merged.iter_mut().filter(|(_, l)| *l == ProofLang::En) {
+        for (_, l) in merged.iter_mut().filter(|(_, l)| l.is_english()) {
             *l = ProofLang::Other;
         }
         ProofLang::Other
@@ -983,6 +1014,27 @@ mod tests {
             assert!(is_correct(w), "{w}");
         }
         assert!(check_spelling("The programme honoured her rigour and prioritised colourful, paediatric care.").is_empty());
+    }
+
+    #[test]
+    fn us_and_uk_english_flag_each_others_spellings() {
+        let (us, gb) = (ProofLang::from_tag(Some("en-US")), ProofLang::from_tag(Some("en-GB")));
+        assert_eq!((us, gb, ProofLang::from_tag(Some("en-AU"))), (ProofLang::EnUs, ProofLang::EnGb, ProofLang::En));
+        let flagged = |t: &str, l| check_spelling_in(t, l).iter().map(|i| t[i.start..i.end].to_string()).collect::<Vec<_>>();
+        let t = "The colour of the centre, the color of the center, organized and organised.";
+        assert_eq!(flagged(t, gb), ["color", "center"]);
+        assert_eq!(flagged(t, us), ["colour", "centre"], "-ise/-ize is not a US/UK difference here");
+        assert!(flagged(t, ProofLang::En).is_empty(), "no region accepts both");
+        // The region's spelling comes first, in the word's case; never the other region's.
+        assert_eq!(suggest_in("Color", 3, gb).first().map(String::as_str), Some("Colour"));
+        assert_eq!(suggest_in("centred", 3, us).first().map(String::as_str), Some("centered"));
+        assert!(!suggest_in("colr", 5, gb).contains(&"color".to_string()));
+        // Capitals (ignored by default) and the user dictionary win.
+        assert!(is_correct_in("COLOR", gb));
+        add_word("color");
+        assert!(is_correct_in("color", gb));
+        remove_word("color");
+        assert!(!is_correct_in("color", gb));
     }
 
     #[test]

@@ -2076,7 +2076,6 @@ template	Letter	Pismo
 	Spelling & Grammar	Pravopis i gramatika
 	Spelling &\nGrammar	Pravopis i\ngramatika
 	Spelling Suggestions	Pravopisni prijedlozi
-	Spelling and grammar are checked in English (United States).	Pravopis i gramatika provjeravaju se na engleskom (Sjedinjene Američke Države).
 	Split	Podijeli
 	Split Cells	Podijeli ćelije
 	Split Table	Podijeli tablicu
@@ -2632,3 +2631,6 @@ preview	Title	Naslov
 	Bottom Right Cell	Donja desna ćelija
 	Inside Horizontal Border	Unutarnji vodoravni obrub
 	Inside Vertical Border	Unutarnji okomiti obrub
+	New documents:	Novi dokumenti:
+	Same as the interface language	Isti kao jezik sučelja
+	New documents are checked in this language. For text you've already written, use Review › Language.	Novi dokumenti provjeravaju se na ovom jeziku. Za već napisani tekst upotrijebite Pregled › Jezik.

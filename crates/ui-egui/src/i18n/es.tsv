@@ -179,7 +179,6 @@
 	Show the mini toolbar when text is selected	Mostrar la minibarra de herramientas al seleccionar texto
 	Spaces	Espacios
 	Spelling	Ortografía
-	Spelling and grammar are checked in English (United States).	La ortografía y la gramática se revisan en inglés (Estados Unidos).
 	Tab characters	Caracteres de tabulación
 	Tab stop position:	Posición de la tabulación:
 	Default tab stops:	Tabulaciones predeterminadas:
@@ -2599,3 +2598,6 @@ preview	Title	Título
 # Reading Mode column widths (#1040)
 	Narrow	Estrecha
 	Medium	Media
+	New documents:	Documentos nuevos:
+	Same as the interface language	Igual que el idioma de la interfaz
+	New documents are checked in this language. For text you've already written, use Review › Language.	Los documentos nuevos se revisan en este idioma. Para el texto ya escrito, use Revisar › Idioma.

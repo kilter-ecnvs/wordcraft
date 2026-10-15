@@ -263,6 +263,9 @@ pub struct UiState {
     pub window: Option<window_geometry::WindowGeometry>,
     /// Interface language: `auto` (follow the system) or a code from [`i18n::LANGUAGES`].
     pub language: String,
+    /// The language new documents are proofed in (File › Options › Language), a BCP 47 tag such
+    /// as `en-GB`; empty follows the interface language ([`i18n::Lang::editing_lang`]).
+    pub proofing_language: String,
     /// Editing preferences; the session owns them while running (see [`WordApp::prefs`]).
     pub editing: wordcraft_engine::Prefs,
     /// Read Aloud speed (1 = normal) and whether it skips citations and bibliographies.
@@ -355,6 +358,7 @@ impl Default for UiState {
             author: String::new(),
             window: None,
             language: i18n::AUTO.into(),
+            proofing_language: String::new(),
             editing: wordcraft_engine::Prefs::default(),
             read_aloud_rate: 1.0,
             read_aloud_skip_citations: true,
@@ -486,8 +490,9 @@ pub struct WordApp {
     desktop_theme: desktop_theme::DesktopTheme,
     /// The last answer [`desktop_theme`] gave, so a frame that asks costs nothing.
     desktop_dark: Option<bool>,
-    /// The interface language whose editing language the session last got ([`i18n::Lang::editing_lang`]).
-    applied_editing: Option<i18n::Lang>,
+    /// The interface language and proofing language setting the session's editing language last
+    /// came from ([`i18n::Lang::editing_lang`], [`UiState::proofing_language`]).
+    applied_editing: Option<(i18n::Lang, String)>,
     /// What the system last said about its animation effects ([`Services::animations_enabled`]).
     system_animations: Option<bool>,
     /// Whether egui's own animations were last switched on or off ([`theme::apply_animations`]).
@@ -1411,6 +1416,21 @@ impl WordApp {
                 self.read_system_animations();
                 json!({"animations": self.ui.animations.code(), "enabled": self.animations_on(), "system": self.system_animations})
             }
+            "ui.proofingLanguage" => {
+                // A BCP 47 tag (`en-GB`) for new documents, or `auto`/empty to follow the
+                // interface language.
+                if let Some(v) = s("value") {
+                    if v.trim().is_empty() || v.trim().eq_ignore_ascii_case("auto") {
+                        self.ui.proofing_language.clear();
+                    } else {
+                        match wordcraft_engine::proof::lang::normalize_tag(v) {
+                            Some(tag) => self.ui.proofing_language = tag,
+                            None => return Some(Err(format!("not a language tag: {v:?}; use e.g. en-GB, or auto"))),
+                        }
+                    }
+                }
+                json!({"proofingLanguage": self.ui.proofing_language, "editing": self.session.editing_lang})
+            }
             "ui.language" => {
                 // `auto` (follow the system) or a language code; anything else is an error.
                 if let Some(v) = s("value") {
@@ -1744,11 +1764,14 @@ impl WordApp {
     pub fn logic(&mut self, ctx: &egui::Context) {
         let lang = i18n::Lang::from_pref(&self.ui.language);
         i18n::set_current(lang);
-        // New documents are written in the interface's language when WordCraft can proof it
-        // (a Polish interface: Polish spelling, grammar and hyphenation from the first word).
-        if self.applied_editing != Some(lang) {
-            self.session.set_editing_language(lang.editing_lang());
-            self.applied_editing = Some(lang);
+        // New documents are written in the chosen proofing language, else the interface's
+        // language when WordCraft can proof it (a Polish interface: Polish spelling, grammar and
+        // hyphenation from the first word).
+        let editing = (lang, self.ui.proofing_language.clone());
+        if self.applied_editing.as_ref() != Some(&editing) {
+            let tag = if editing.1.is_empty() { lang.editing_lang() } else { Some(editing.1.as_str()) };
+            self.session.set_editing_language(tag);
+            self.applied_editing = Some(editing);
         }
         options::sync(self);
         self.settle_async_saves();
@@ -2386,6 +2409,7 @@ pub(crate) fn works_without_document(id: &str) -> bool {
             | "ui.interfaceSize"
             | "ui.animations"
             | "ui.language"
+            | "ui.proofingLanguage"
             | "ui.saveChanges"
             | "ui.openFileDialog"
             | "ui.fileBrowser"

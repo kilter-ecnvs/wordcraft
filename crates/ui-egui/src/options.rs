@@ -346,7 +346,7 @@ fn language_name(lang: wordcraft_engine::proof::ProofLang) -> &'static str {
         ProofLang::Ru => tl!("Russian"),
         ProofLang::Cs => tl!("Czech"),
         // English uses its bundled word list; Bulgarian has no dictionary yet.
-        ProofLang::En | ProofLang::Bg | ProofLang::Other => "",
+        ProofLang::En | ProofLang::EnUs | ProofLang::EnGb | ProofLang::Bg | ProofLang::Other => "",
     }
 }
 
@@ -423,7 +423,29 @@ fn language(app: &mut WordApp, ui: &mut Ui) {
     // #414 (detect the document's language) goes here.
     ui.add_space(8.0);
     section(ui, "Proofing language");
-    note(ui, "Spelling and grammar are checked in English (United States).");
+    proofing_picker(app, ui);
+}
+
+/// The language new documents are proofed in: the interface's (the default) or one picked from
+/// the Language dialog's list.
+fn proofing_picker(app: &mut WordApp, ui: &mut Ui) {
+    use crate::dialogs_layout::{LANGUAGES, language_name};
+    let follow = tl!("Same as the interface language");
+    let current = if app.ui.proofing_language.is_empty() { follow.to_string() } else { language_name(&app.ui.proofing_language) };
+    ui.horizontal(|ui| {
+        ui.label(tl!("New documents:"));
+        egui::ComboBox::from_id_salt("proofing_language").selected_text(current).width(220.0).show_ui(ui, |ui| {
+            if ui.selectable_label(app.ui.proofing_language.is_empty(), follow).clicked() {
+                let _ = app.run("ui.proofingLanguage", json!({"value": "auto"}));
+            }
+            for (tag, _) in LANGUAGES {
+                if ui.selectable_label(app.ui.proofing_language.eq_ignore_ascii_case(tag), language_name(tag)).clicked() {
+                    let _ = app.run("ui.proofingLanguage", json!({"value": tag}));
+                }
+            }
+        });
+    });
+    note(ui, "New documents are checked in this language. For text you've already written, use Review › Language.");
 }
 
 fn accessibility(app: &mut WordApp, ui: &mut Ui) {
@@ -733,6 +755,27 @@ mod tests {
 
     fn app() -> WordApp {
         WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Services::default())
+    }
+
+    /// Options › Language › Proofing language: new documents are proofed in the chosen language
+    /// whatever the interface language; `auto` follows the interface again.
+    #[test]
+    fn proofing_language_setting_sets_new_documents_language() {
+        let mut a = app();
+        let ctx = egui::Context::default();
+        a.run("ui.proofingLanguage", json!({"value": "en_gb"})).unwrap();
+        assert_eq!(a.ui.proofing_language, "en-GB");
+        a.logic(&ctx);
+        assert_eq!(a.session.doc.styles.default_chr.lang.as_deref(), Some("en-GB"), "the untouched blank document follows");
+        a.run("ui.language", json!({"value": "pl"})).unwrap();
+        a.logic(&ctx);
+        a.run("file.new", json!({})).unwrap();
+        assert_eq!(a.session.doc.styles.default_chr.lang.as_deref(), Some("en-GB"), "not the interface's Polish");
+        assert!(a.run("ui.proofingLanguage", json!({"value": "not a tag!"})).is_err());
+        a.run("ui.proofingLanguage", json!({"value": "auto"})).unwrap();
+        a.logic(&ctx);
+        assert!(a.ui.proofing_language.is_empty());
+        assert_eq!(a.session.editing_lang.as_deref(), Some("pl-PL"), "the interface's language again");
     }
 
     fn nav_harness(language: &str, percent: u16) -> egui_kittest::Harness<'static, WordApp> {

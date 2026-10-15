@@ -2449,7 +2449,6 @@ preview	Title	Örnek
 	Show the mini toolbar when text is selected	Metin seçildiğinde mini araç çubuğunu göster
 	Spaces	Boşluklar
 	Spelling	Yazım
-	Spelling and grammar are checked in English (United States).	Yazım ve dil bilgisi İngilizce (Amerika Birleşik Devletleri) için denetlenir.
 	Tab characters	Sekme karakterleri
 	These marks show even when Show/Hide ¶ is off.	Bu işaretler, Göster/Gizle ¶ kapalıyken de görünür.
 	Typing replaces selected text	Yazmak seçili metnin yerine geçer
@@ -2629,3 +2628,6 @@ preview	Title	Örnek
 # Reading Mode column widths (#1040)
 	Narrow	Dar
 	Medium	Orta
+	New documents:	Yeni belgeler:
+	Same as the interface language	Arayüz diliyle aynı
+	New documents are checked in this language. For text you've already written, use Review › Language.	Yeni belgeler bu dilde denetlenir. Önceden yazılmış metin için İncele › Dil'i kullanın.

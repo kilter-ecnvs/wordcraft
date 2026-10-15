@@ -1,0 +1,133 @@
+# US and British spellings of the same word: "us gb" per line, lowercase base forms, `#` comments.
+# English (United States) flags the British form, English (United Kingdom) the US form; other
+# English (no region, en-AU…) accepts both. Inflections (s, ed, ing, er, ers, able, ly, ful, less)
+# are derived (a final e drops before a vowel ending: centred, analysed); words ending in l take
+# only the consonant endings, their -ed/-ing forms are listed (travelled, enrolled stay right).
+# -ize/-ise is not listed: British English accepts both (Oxford spelling), like Word.
+# Pairs where the other form is also in standard use (program, check, tire, license, practice,
+# dialog, meter, grey, theatre, catalogue, glamour, fetus, sulfur…) are not listed.
+# Our own list, MIT OR Apache-2.0.
+
+# -or / -our
+arbor arbour
+ardor ardour
+armor armour
+armory armoury
+behavior behaviour
+behavioral behavioural
+candor candour
+clamor clamour
+color colour
+colorful colourful
+demeanor demeanour
+endeavor endeavour
+favor favour
+favorable favourable
+favorite favourite
+fervor fervour
+flavor flavour
+harbor harbour
+honor honour
+honorable honourable
+humor humour
+humorless humourless
+labor labour
+neighbor neighbour
+neighborhood neighbourhood
+neighborly neighbourly
+odor odour
+parlor parlour
+rancor rancour
+rigor rigour
+rumor rumour
+savor savour
+savory savoury
+splendor splendour
+succor succour
+tumor tumour
+valor valour
+vapor vapour
+vigor vigour
+
+# -er / -re
+caliber calibre
+center centre
+centimeter centimetre
+fiber fibre
+goiter goitre
+kilometer kilometre
+liter litre
+luster lustre
+maneuver manoeuvre
+meager meagre
+millimeter millimetre
+miter mitre
+reconnoiter reconnoitre
+scepter sceptre
+sepulcher sepulchre
+somber sombre
+specter spectre
+
+# -l / -ll
+canceled cancelled
+canceling cancelling
+counselor counsellor
+enroll enrol
+enrollment enrolment
+fueled fuelled
+fueling fuelling
+fulfill fulfil
+fulfillment fulfilment
+installment instalment
+jewelry jewellery
+labeled labelled
+labeling labelling
+leveled levelled
+leveling levelling
+marvelous marvellous
+modeled modelled
+modeling modelling
+quarreled quarrelled
+signaled signalled
+skillful skilful
+traveled travelled
+traveler traveller
+traveling travelling
+willful wilful
+woolen woollen
+
+# -ense / -ence (nouns)
+defense defence
+offense offence
+pretense pretence
+
+# -yze / -yse
+analyze analyse
+catalyze catalyse
+paralyze paralyse
+
+# ae / oe
+anemia anaemia
+anesthesia anaesthesia
+anesthetic anaesthetic
+archeology archaeology
+diarrhea diarrhoea
+encyclopedia encyclopaedia
+esophagus oesophagus
+estrogen oestrogen
+gynecology gynaecology
+hemoglobin haemoglobin
+hemorrhage haemorrhage
+leukemia leukaemia
+orthopedic orthopaedic
+pediatric paediatric
+
+# other
+aluminum aluminium
+cozy cosy
+mold mould
+molt moult
+pajamas pyjamas
+skeptic sceptic
+skeptical sceptical
+smolder smoulder

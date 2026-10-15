@@ -1538,7 +1538,6 @@
 	Show the mini toolbar when text is selected	Mostra la barra di formattazione rapida quando selezioni il testo
 	Spaces	Spazi
 	Spelling	Ortografia
-	Spelling and grammar are checked in English (United States).	L'ortografia e la grammatica vengono controllate in inglese (Stati Uniti).
 	Tab characters	Caratteri di tabulazione
 	These marks show even when Show/Hide ¶ is off.	Questi segni vengono mostrati anche quando Mostra tutto è disattivato.
 	Typing replaces selected text	Il testo digitato sostituisce la selezione
@@ -2641,3 +2640,6 @@ preview	Title	Esempio
 # Reading Mode column widths (#1040)
 	Narrow	Stretta
 	Medium	Media
+	New documents:	Nuovi documenti:
+	Same as the interface language	Uguale alla lingua dell'interfaccia
+	New documents are checked in this language. For text you've already written, use Review › Language.	I nuovi documenti vengono controllati in questa lingua. Per il testo già scritto, usa Revisione › Lingua.

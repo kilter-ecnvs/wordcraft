@@ -1910,7 +1910,6 @@
 	Show the mini toolbar when text is selected	Afficher la mini barre d’outils lors de la sélection de texte
 	Spaces	Espaces
 	Spelling	Orthographe
-	Spelling and grammar are checked in English (United States).	L’orthographe et la grammaire sont vérifiées en anglais (États-Unis).
 	Tab characters	Caractères de tabulation
 	These marks show even when Show/Hide ¶ is off.	Ces marques s’affichent même lorsque Afficher/Masquer ¶ est désactivé.
 	Typing replaces selected text	La frappe remplace le texte sélectionné
@@ -2240,3 +2239,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	Étroite
 	Medium	Moyenne
+	New documents:	Nouveaux documents :
+	Same as the interface language	Identique à la langue de l’interface
+	New documents are checked in this language. For text you've already written, use Review › Language.	Les nouveaux documents sont vérifiés dans cette langue. Pour le texte déjà écrit, utilisez Révision › Langue.

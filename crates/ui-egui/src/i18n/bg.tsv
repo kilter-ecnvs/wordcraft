@@ -2154,7 +2154,6 @@
 	Show the mini toolbar when text is selected	Показване на мини лентата с инструменти при избран текст
 	Spaces	Интервали
 	Spelling	Правопис
-	Spelling and grammar are checked in English (United States).	Правописът и граматиката се проверяват на английски (САЩ).
 	Tab characters	Знаци за табулация
 	These marks show even when Show/Hide ¶ is off.	Тези знаци се показват дори когато „Показване/скриване на ¶“ е изключено.
 	Typing replaces selected text	Въвежданият текст замества избрания текст
@@ -2621,3 +2620,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	Тясна
 	Medium	Средна
+	New documents:	Нови документи:
+	Same as the interface language	Като езика на интерфейса
+	New documents are checked in this language. For text you've already written, use Review › Language.	Новите документи се проверяват на този език. За вече написан текст използвайте Преглед › Език.

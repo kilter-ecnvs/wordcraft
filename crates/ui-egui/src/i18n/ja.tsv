@@ -194,7 +194,6 @@
 	Show the mini toolbar when text is selected	テキストを選択したときにミニ ツール バーを表示する
 	Spaces	スペース
 	Spelling	スペル チェック
-	Spelling and grammar are checked in English (United States).	スペルと文法は英語 (米国) でチェックされます。
 	Tab characters	タブ
 	Tab stop position:	タブ位置:
 	Default tab stops:	既定のタブ間隔:
@@ -2233,3 +2232,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	狭い
 	Medium	中
+	New documents:	新しい文書:
+	Same as the interface language	表示言語と同じ
+	New documents are checked in this language. For text you've already written, use Review › Language.	新しい文書はこの言語で校正されます。既に入力したテキストには 校閲 › 言語 を使用します。

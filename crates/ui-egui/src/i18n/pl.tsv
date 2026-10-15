@@ -2023,7 +2023,6 @@
 	Spaces	Spacje
 	Special	Specjalne
 	Spelling	Pisownia
-	Spelling and grammar are checked in English (United States).	Pisownia i gramatyka są sprawdzane w języku angielskim (Stany Zjednoczone).
 	Stacked Bar	Słupkowy skumulowany
 	Stacked Column	Kolumnowy skumulowany
 	Standard	Standardowe
@@ -2622,3 +2621,6 @@ preview	Title	Tytuł
 # Reading Mode column widths (#1040)
 	Narrow	Wąska
 	Medium	Średnia
+	New documents:	Nowe dokumenty:
+	Same as the interface language	Taki sam jak język interfejsu
+	New documents are checked in this language. For text you've already written, use Review › Language.	Nowe dokumenty są sprawdzane w tym języku. W przypadku już napisanego tekstu użyj Recenzja › Język.
