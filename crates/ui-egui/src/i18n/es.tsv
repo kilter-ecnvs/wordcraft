@@ -2599,3 +2599,11 @@ preview	Title	Título
 # Reading Mode column widths (#1040)
 	Narrow	Estrecha
 	Medium	Media
+	Create New Theme	Crear tema nuevo
+	Delete Theme	Eliminar tema
+	Create New Theme…	Crear tema nuevo…
+	Customize Colors…	Personalizar colores…
+	Heading font:	Fuente de encabezado:
+	Body font:	Fuente de cuerpo:
+	Background:	Fondo:
+	Accent {n}:	Énfasis {n}:

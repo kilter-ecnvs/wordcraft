@@ -2267,3 +2267,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	Kitsas
 	Medium	Keskmine
+	Create New Theme	Loo uus kujundus
+	Delete Theme	Kustuta kujundus
+	Create New Theme…	Loo uus kujundus…
+	Customize Colors…	Kohanda värve…
+	Heading font:	Pealkirjafont:
+	Body font:	Sisufont:
+	Background:	Taust:
+	Accent {n}:	Rõhk {n}:

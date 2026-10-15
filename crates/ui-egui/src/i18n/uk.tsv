@@ -2245,3 +2245,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	Вузька
 	Medium	Середня
+	Create New Theme	Створити нову тему
+	Delete Theme	Видалити тему
+	Create New Theme…	Створити нову тему…
+	Customize Colors…	Настроїти кольори…
+	Heading font:	Шрифт заголовків:
+	Body font:	Шрифт основного тексту:
+	Background:	Тло:
+	Accent {n}:	Акцент {n}:

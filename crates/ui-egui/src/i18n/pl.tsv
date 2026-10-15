@@ -2622,3 +2622,11 @@ preview	Title	Tytuł
 # Reading Mode column widths (#1040)
 	Narrow	Wąska
 	Medium	Średnia
+	Create New Theme	Utwórz nowy motyw
+	Delete Theme	Usuń motyw
+	Create New Theme…	Utwórz nowy motyw…
+	Customize Colors…	Dostosuj kolory…
+	Heading font:	Czcionka nagłówków:
+	Body font:	Czcionka tekstu:
+	Background:	Tło:
+	Accent {n}:	Akcent {n}:

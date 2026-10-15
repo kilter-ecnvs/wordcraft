@@ -2234,3 +2234,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	窄
 	Medium	中等
+	Create New Theme	建立新的佈景主題
+	Delete Theme	刪除佈景主題
+	Create New Theme…	建立新的佈景主題…
+	Customize Colors…	自訂色彩…
+	Heading font:	標題字型：
+	Body font:	本文字型：
+	Background:	背景：
+	Accent {n}:	輔色 {n}：

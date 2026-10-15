@@ -2232,3 +2232,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	Schmal
 	Medium	Mittel
+	Create New Theme	Neues Design erstellen
+	Delete Theme	Design löschen
+	Create New Theme…	Neues Design erstellen…
+	Customize Colors…	Farben anpassen…
+	Heading font:	Schriftart für Überschriften:
+	Body font:	Schriftart für Textkörper:
+	Background:	Hintergrund:
+	Accent {n}:	Akzent {n}:

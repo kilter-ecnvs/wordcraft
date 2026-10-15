@@ -2641,3 +2641,11 @@ preview	Title	Esempio
 # Reading Mode column widths (#1040)
 	Narrow	Stretta
 	Medium	Media
+	Create New Theme	Crea nuovo tema
+	Delete Theme	Elimina tema
+	Create New Theme…	Crea nuovo tema…
+	Customize Colors…	Personalizza colori…
+	Heading font:	Carattere titoli:
+	Body font:	Carattere corpo:
+	Background:	Sfondo:
+	Accent {n}:	Colore {n}:

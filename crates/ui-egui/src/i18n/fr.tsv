@@ -2240,3 +2240,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	Étroite
 	Medium	Moyenne
+	Create New Theme	Créer un thème
+	Delete Theme	Supprimer le thème
+	Create New Theme…	Créer un thème…
+	Customize Colors…	Personnaliser les couleurs…
+	Heading font:	Police des titres :
+	Body font:	Police du corps :
+	Background:	Arrière-plan :
+	Accent {n}:	Accentuation {n} :

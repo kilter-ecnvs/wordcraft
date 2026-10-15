@@ -7232,3 +7232,57 @@ fn vertical_align_command_sets_justified() {
         assert_eq!(serde_json::to_value(crate::cmd::page::sect(&s)).unwrap()["valign"], json!(name));
     }
 }
+
+/// Design › Colors applies the whole colour set (all six accents), not only accent 1.
+#[test]
+fn theme_colors_apply_every_accent() {
+    let mut s = s();
+    run(&mut s, "design.themeColors", json!({"name": "Gallery"}));
+    let gallery = cmd::design::THEMES.iter().find(|t| t.0 == "Gallery").unwrap().3;
+    assert_eq!(s.doc.settings.theme_colors[4..10], gallery);
+    assert!(s.run("design.themeColors", &json!({"name": "Nope"})).is_err());
+}
+
+/// Design › Themes › Create New Theme: a user's theme is saved with the preferences, applied,
+/// listed with ours (and offered to every document), replaced by name, and deleted.
+#[test]
+fn custom_themes_are_saved_applied_listed_and_deleted() {
+    use wordcraft_doc::props::Rgb;
+    let mut s = s();
+    let accents = ["112233", "445566", "778899", "AABBCC", "DDEEFF", "#102030"];
+    run(&mut s, "design.createTheme", json!({"name": " Navy ", "heading": "Georgia", "body": "Arial", "accents": accents, "text": "0A0A0A"}));
+    assert_eq!(s.prefs.themes.len(), 1);
+    assert_eq!((s.prefs.themes[0].name.as_str(), s.doc.settings.theme_name.as_str()), ("Navy", "Navy"));
+    assert_eq!((s.doc.settings.major_font.as_str(), s.doc.settings.minor_font.as_str()), ("Georgia", "Arial"));
+    assert_eq!(s.doc.settings.theme_colors[4], Rgb(0x11, 0x22, 0x33));
+    assert_eq!(s.doc.settings.theme_colors[9], Rgb(0x10, 0x20, 0x30));
+    assert_eq!(s.doc.settings.theme_colors[2], Rgb(0x0A, 0x0A, 0x0A), "Text/Background – Dark 2");
+    let list = run(&mut s, "design.themes", json!({"detail": true}));
+    let navy = list.as_array().unwrap().iter().find(|t| t["name"] == "Navy").unwrap();
+    assert_eq!((navy["custom"].as_bool(), navy["accents"][0].as_str()), (Some(true), Some("112233")));
+    assert!(run(&mut s, "design.themes", json!({})).as_array().unwrap().contains(&json!("Craft")));
+
+    // Another document gets it too; the same name replaces it; what isn't given is the document's.
+    let mut other = Session::new(wordcraft_doc::Document::new());
+    other.prefs = s.prefs.clone();
+    run(&mut other, "design.theme", json!({"name": "navy"}));
+    assert_eq!(other.doc.settings.minor_font, "Arial");
+    run(&mut s, "design.createTheme", json!({"name": "NAVY", "accents": ["FF0000"]}));
+    assert_eq!(s.prefs.themes.len(), 1);
+    assert_eq!((s.prefs.themes[0].accents[0].as_str(), s.prefs.themes[0].accents[1].as_str()), ("FF0000", "445566"));
+
+    // Refused: a built-in name, a blank name, a bad colour, too many accents, deleting ours.
+    for bad in [
+        json!({"name": "Studio"}),
+        json!({"name": "  "}),
+        json!({"name": "X", "accents": ["red"]}),
+        json!({"name": "X", "text": "12"}),
+        json!({"name": "X", "accents": ["000000", "000000", "000000", "000000", "000000", "000000", "000000"]}),
+    ] {
+        assert!(s.run("design.createTheme", &bad).is_err(), "{bad}");
+    }
+    assert!(s.run("design.deleteTheme", &json!({"name": "Craft"})).is_err());
+    run(&mut s, "design.deleteTheme", json!({"name": "navy"}));
+    assert!(s.prefs.themes.is_empty());
+    assert!(s.run("design.theme", &json!({"name": "Navy"})).is_err());
+}

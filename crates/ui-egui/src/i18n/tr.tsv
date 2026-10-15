@@ -2629,3 +2629,11 @@ preview	Title	Örnek
 # Reading Mode column widths (#1040)
 	Narrow	Dar
 	Medium	Orta
+	Create New Theme	Yeni tema oluştur
+	Delete Theme	Temayı sil
+	Create New Theme…	Yeni tema oluştur…
+	Customize Colors…	Renkleri özelleştir…
+	Heading font:	Başlık yazı tipi:
+	Body font:	Gövde yazı tipi:
+	Background:	Arka plan:
+	Accent {n}:	Vurgu {n}:

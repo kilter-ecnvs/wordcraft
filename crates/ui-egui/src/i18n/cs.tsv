@@ -2624,3 +2624,11 @@ preview	Title	Ukázka
 # Reading Mode column widths (#1040)
 	Narrow	Úzká
 	Medium	Střední
+	Create New Theme	Vytvořit nový motiv
+	Delete Theme	Odstranit motiv
+	Create New Theme…	Vytvořit nový motiv…
+	Customize Colors…	Přizpůsobit barvy…
+	Heading font:	Písmo nadpisů:
+	Body font:	Písmo textu:
+	Background:	Pozadí:
+	Accent {n}:	Zvýraznění {n}:

@@ -2630,3 +2630,11 @@ preview	Title	Пример
 # Reading Mode column widths (#1040)
 	Narrow	Узкая
 	Medium	Средняя
+	Create New Theme	Создать тему
+	Delete Theme	Удалить тему
+	Create New Theme…	Создать тему…
+	Customize Colors…	Настроить цвета…
+	Heading font:	Шрифт заголовков:
+	Body font:	Шрифт основного текста:
+	Background:	Фон:
+	Accent {n}:	Акцент {n}:

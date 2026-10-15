@@ -2247,3 +2247,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	Уска
 	Medium	Средња
+	Create New Theme	Направи нову тему
+	Delete Theme	Обриши тему
+	Create New Theme…	Направи нову тему…
+	Customize Colors…	Прилагоди боје…
+	Heading font:	Фонт наслова:
+	Body font:	Фонт текста:
+	Background:	Позадина:
+	Accent {n}:	Наглашавање {n}:

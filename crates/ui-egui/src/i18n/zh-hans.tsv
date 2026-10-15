@@ -2245,3 +2245,11 @@
 # Reading Mode column widths (#1040)
 	Narrow	窄
 	Medium	中等
+	Create New Theme	新建主题
+	Delete Theme	删除主题
+	Create New Theme…	新建主题…
+	Customize Colors…	自定义颜色…
+	Heading font:	标题字体：
+	Body font:	正文字体：
+	Background:	背景：
+	Accent {n}:	着色 {n}：

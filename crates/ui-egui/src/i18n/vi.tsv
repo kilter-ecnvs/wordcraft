@@ -2672,3 +2672,11 @@ template	Letter	Thư
 # Reading Mode column widths (#1040)
 	Narrow	Hẹp
 	Medium	Trung bình
+	Create New Theme	Tạo chủ đề mới
+	Delete Theme	Xóa chủ đề
+	Create New Theme…	Tạo chủ đề mới…
+	Customize Colors…	Tùy chỉnh màu…
+	Heading font:	Phông chữ đầu đề:
+	Body font:	Phông chữ nội dung:
+	Background:	Nền:
+	Accent {n}:	Màu nhấn {n}:
