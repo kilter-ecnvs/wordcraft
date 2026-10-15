@@ -1,9 +1,10 @@
 //! Layout, Review and Mailings dialogs (#407): Line Numbers (Layout › Line Numbers › Line
 //! Numbering Options…), Hyphenation (Hyphenation Options… and Manual…), Language (Review ›
 //! Language), Envelopes and Labels (Mailings › Create), Formula (Table Layout › Data, #1201)
-//! and Sort (Table Layout › Data, #1200). Each ends by running a command (`layout.lineNumbers`,
+//! and Sort (Table Layout › Data, #1200), Create New Theme (Design › Themes and Colors). Each ends by running a command (`layout.lineNumbers`,
 //! `layout.hyphenation`, `layout.manualHyphenation` with `caret.set` and `text.optionalHyphen`,
-//! `review.language`, `mailings.envelopes`, `mailings.labels`, `table.formula`, `table.sort`), so
+//! `review.language`, `mailings.envelopes`, `mailings.labels`, `table.formula`, `table.sort`,
+//! `design.createTheme`), so
 //! scripts and agents get the same result without the dialog. Shown through
 //! [`crate::dialogs::Dialog::Layout`].
 
@@ -29,6 +30,7 @@ pub enum LayoutDialog {
     Labels(LabelsForm),
     Formula(FormulaForm),
     Sort(SortForm),
+    Theme(ThemeForm),
 }
 
 impl LayoutDialog {
@@ -42,6 +44,7 @@ impl LayoutDialog {
             LayoutDialog::Labels(_) => "labels",
             LayoutDialog::Formula(_) => "tableFormula",
             LayoutDialog::Sort(_) => "tableSort",
+            LayoutDialog::Theme(_) => "createTheme",
         }
     }
 
@@ -56,6 +59,7 @@ impl LayoutDialog {
             LayoutDialog::Labels(_) => "Labels",
             LayoutDialog::Formula(_) => "Formula",
             LayoutDialog::Sort(_) => "Sort",
+            LayoutDialog::Theme(_) => "Create New Theme",
         }
     }
 }
@@ -71,6 +75,7 @@ pub fn open(name: &str, app: &mut WordApp) -> Option<LayoutDialog> {
         "labels" => LayoutDialog::Labels(LabelsForm::read(app)),
         "tableFormula" => LayoutDialog::Formula(FormulaForm::read(app)?),
         "tableSort" => LayoutDialog::Sort(SortForm::read(app)?),
+        "createTheme" => LayoutDialog::Theme(ThemeForm::read(app)),
         _ => return None,
     })
 }
@@ -86,6 +91,7 @@ pub fn body(app: &mut WordApp, ui: &mut Ui, d: &mut LayoutDialog) -> bool {
         LayoutDialog::Labels(f) => labels_ui(app, ui, f),
         LayoutDialog::Formula(f) => formula_ui(app, ui, f),
         LayoutDialog::Sort(f) => sort_ui(app, ui, f),
+        LayoutDialog::Theme(f) => theme_ui(app, ui, f),
     }
 }
 
@@ -821,6 +827,43 @@ mod tests {
         *d
     }
 
+    /// Design › Themes › Create New Theme… starts from the document's theme under a free name;
+    /// Save keeps it and applies it, and opening the dialog on it again offers Delete Theme.
+    #[test]
+    fn create_new_theme_saves_and_deletes() {
+        use egui_kittest::kittest::Queryable;
+        let mut a = app();
+        a.run("design.theme", json!({"name": "Studio"})).unwrap();
+        a.run("ui.dialog", json!({"name": "createTheme"})).unwrap();
+        let LayoutDialog::Theme(mut f) = form(&mut a) else { panic!("create theme") };
+        assert_eq!((f.name.as_str(), f.heading.as_str()), ("Custom 1", "Georgia"));
+        assert_eq!(f.colors[2], "8C2F39", "Studio's accent 1");
+        f.colors[2] = "123456".into();
+        f.colors[7] = String::new(); // Automatic: keeps the document's accent 6
+        a.run("design.createTheme", f.params()).unwrap();
+        let t = &a.session.prefs.themes[0];
+        assert_eq!((t.name.as_str(), t.accents[0].as_str(), t.accents[5].as_str()), ("Custom 1", "123456", "4A4A4A"));
+        assert_eq!(a.session.doc.settings.theme_name, "Custom 1");
+
+        // Drawn: the dialog reopens on the document's theme, with Delete Theme.
+        let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1440.0, 900.0)).build_ui_state(
+            |ui, app: &mut WordApp| {
+                let ctx = ui.ctx().clone();
+                app.logic(&ctx);
+                app.ui(ui);
+            },
+            a,
+        );
+        h.run_steps(2);
+        h.state_mut().run("ui.dialog", json!({"name": "createTheme"})).unwrap();
+        h.run_steps(3);
+        assert!(h.query_by_label("Heading font:").is_some(), "the dialog shows");
+        h.get_by_label("Delete Theme").click();
+        h.run_steps(3);
+        assert!(h.state().session.prefs.themes.is_empty());
+        assert!(h.state().dialog.is_none(), "Delete closes it");
+    }
+
     /// #407: Line Numbering Options… opens with the section's numbering and OK sets every
     /// option; Hyphenation Options sets the document's hyphenation settings.
     #[test]
@@ -1027,4 +1070,102 @@ mod tests {
         assert_eq!(a.session.run("mailings.labels", &f.params()).unwrap()["filled"], 1);
         assert!(product_label(f.product).contains("63.5 × 33.9 mm (A4)"));
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Create New Theme
+
+/// The Create New Theme dialog's fields: the document's current theme to start from. `colors`
+/// are hex: Text/Background – Dark 2, Light 2, then Accent 1–6.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThemeForm {
+    pub name: String,
+    pub heading: String,
+    pub body: String,
+    pub colors: [String; 8],
+}
+
+impl ThemeForm {
+    pub fn read(app: &WordApp) -> ThemeForm {
+        let s = &app.session;
+        let theme = &s.doc.settings.theme_colors;
+        let slot = |i: usize| theme.get(i).copied().unwrap_or_default().hex();
+        // The document's own theme when it's the user's (to change it), else a new name.
+        let current = &s.doc.settings.theme_name;
+        let name = if s.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(current)) {
+            current.clone()
+        } else {
+            let custom = tl!("Custom");
+            (1..).map(|n| format!("{custom} {n}")).find(|n| !s.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(n))).unwrap_or_default()
+        };
+        ThemeForm {
+            name,
+            heading: s.doc.settings.major_font.clone(),
+            body: s.doc.settings.minor_font.clone(),
+            colors: [2, 3, 4, 5, 6, 7, 8, 9].map(slot),
+        }
+    }
+
+    /// `design.createTheme` parameters for Save.
+    pub fn params(&self) -> Value {
+        let [text, background, accents @ ..] = &self.colors;
+        json!({"name": self.name, "heading": self.heading, "body": self.body, "accents": accents, "text": text, "background": background})
+    }
+}
+
+fn theme_ui(app: &mut WordApp, ui: &mut Ui, f: &mut ThemeForm) -> bool {
+    let palette = app.session.doc.settings.theme_colors.clone();
+    egui::Grid::new("create_theme").num_columns(2).spacing(vec2(12.0, 6.0)).show(ui, |ui| {
+        ui.label(tl!("Name:"));
+        ui.add(egui::TextEdit::singleline(&mut f.name).desired_width(220.0));
+        ui.end_row();
+        for (label, font, id) in [("Heading font:", &mut f.heading, "theme_heading"), ("Body font:", &mut f.body, "theme_body")] {
+            ui.label(tl!(label));
+            let shown = app.previews.font_shown(font);
+            let fams = app.previews.families();
+            let prev = app.previews.font_preview_fn();
+            if let Some(picked) = crate::widgets::font_combo(ui, id, 220.0, &shown, &fams, Some(&*prev)) {
+                if picked == crate::widgets::ADD_FONT {
+                    let _ = app.run("font.add", json!({}));
+                } else {
+                    *font = app.previews.font_stored(&picked);
+                }
+            }
+            ui.end_row();
+        }
+        for (i, value) in f.colors.iter_mut().enumerate() {
+            let label = match i {
+                0 => tl!("Text:").to_string(),
+                1 => tl!("Background:").to_string(),
+                n => crate::i18n::fmt(tl!("Accent {n}:"), &[("n", &(n - 1).to_string())]),
+            };
+            ui.label(label);
+            // Each field its own id: the More Colors… answer must come back to the right one.
+            ui.push_id(i, |ui| crate::dialogs::color_field(ui, &palette, value, "Automatic", ""));
+            ui.end_row();
+        }
+    });
+    // Preview: the colours as the Themes menu will show them.
+    ui.add_space(6.0);
+    ui.horizontal(|ui| {
+        for c in f.colors.iter().filter_map(|h| wordcraft_doc::Rgb::parse(h)) {
+            let (r, _) = ui.allocate_exact_size(vec2(22.0, 22.0), egui::Sense::hover());
+            ui.painter().rect_filled(r, 3.0, crate::theme::c32(c));
+            ui.painter().rect_stroke(r, 3.0, egui::Stroke::new(0.5, crate::theme::Tokens::get(ui.ctx()).border_strong), egui::StrokeKind::Inside);
+        }
+    });
+    let name = f.name.trim().to_string();
+    let saved = app.session.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(&name));
+    if saved {
+        ui.add_space(4.0);
+        if ui.button(tl!("Delete Theme")).clicked() {
+            return run(app, "design.deleteTheme", json!({"name": name}));
+        }
+    }
+    let (ok, cancel) = buttons(ui, "Save", !name.is_empty());
+    if ok {
+        return run(app, "design.createTheme", f.params());
+    }
+    cancel
 }

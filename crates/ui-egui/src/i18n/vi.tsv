@@ -2674,3 +2674,11 @@ template	Letter	Thư
 	New documents:	Tài liệu mới:
 	Same as the interface language	Giống ngôn ngữ giao diện
 	New documents are checked in this language. For text you've already written, use Review › Language.	Tài liệu mới được kiểm tra bằng ngôn ngữ này. Với văn bản đã viết, hãy dùng Xem lại › Ngôn ngữ.
+	Create New Theme	Tạo chủ đề mới
+	Delete Theme	Xóa chủ đề
+	Create New Theme…	Tạo chủ đề mới…
+	Customize Colors…	Tùy chỉnh màu…
+	Heading font:	Phông chữ đầu đề:
+	Body font:	Phông chữ nội dung:
+	Background:	Nền:
+	Accent {n}:	Màu nhấn {n}:

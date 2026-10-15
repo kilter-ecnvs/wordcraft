@@ -1,11 +1,141 @@
 //! Design tab: themes, style sets, colours, fonts, paragraph spacing, watermark, page colour, borders.
 
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use wordcraft_doc::props::{Border, BorderStyle, Borders, LineSpacing, Rgb, TextColor};
 use wordcraft_doc::{Watermark, styles};
 
 use super::sel_result;
 use crate::{CmdError, CmdResult, CommandSpec, Session, p};
+
+/// A theme the user made (Design › Themes › Create New Theme), kept with the preferences
+/// ([`crate::Prefs::themes`]) so every document can use it. Colours are `RRGGBB`.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct CustomTheme {
+    pub name: String,
+    pub heading: String,
+    pub body: String,
+    /// Accent 1–6.
+    pub accents: Vec<String>,
+    /// Text/Background – Dark 2 and Light 2.
+    pub text: String,
+    pub background: String,
+}
+
+/// A theme as the Design tab offers it: one of [`THEMES`] or the user's.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Theme {
+    pub name: String,
+    pub heading: String,
+    pub body: String,
+    pub accents: [Rgb; 6],
+    /// Text/Background – Dark 2 and Light 2; `None` keeps the document's.
+    pub text: Option<Rgb>,
+    pub background: Option<Rgb>,
+    pub custom: bool,
+}
+
+/// The most themes a user can keep (input-derived: a hostile `ui.json` or script can't grow it).
+const MAX_CUSTOM_THEMES: usize = 100;
+
+/// Every theme: ours, then the user's.
+pub fn themes(s: &Session) -> Vec<Theme> {
+    let ours = THEMES.iter().map(|t| Theme {
+        name: t.0.into(),
+        heading: t.1.into(),
+        body: t.2.into(),
+        accents: t.3,
+        text: None,
+        background: None,
+        custom: false,
+    });
+    let theirs = s.prefs.themes.iter().take(MAX_CUSTOM_THEMES).map(|c| {
+        let mut accents = [Rgb::default(); 6];
+        for (i, a) in accents.iter_mut().enumerate() {
+            let fallback = wordcraft_doc::THEME_COLORS.get(4 + i).copied().unwrap_or_default();
+            *a = c.accents.get(i).and_then(|h| Rgb::parse(h)).unwrap_or(fallback);
+        }
+        Theme {
+            name: c.name.clone(),
+            heading: c.heading.clone(),
+            body: c.body.clone(),
+            accents,
+            text: Rgb::parse(&c.text),
+            background: Rgb::parse(&c.background),
+            custom: true,
+        }
+    });
+    ours.chain(theirs).collect()
+}
+
+fn find_theme(s: &Session, name: &str) -> Result<Theme, CmdError> {
+    themes(s).into_iter().find(|t| t.name.eq_ignore_ascii_case(name)).ok_or_else(|| CmdError::Params(format!("unknown theme `{name}`")))
+}
+
+/// The theme's colours: accents 1–6 (headings take accent 1), and Text/Background 2 when it has them.
+fn set_colors(s: &mut Session, t: &Theme) {
+    set_accent(s, t.accents[0]);
+    let colors = &mut s.doc.settings.theme_colors;
+    for (i, c) in t.accents.iter().enumerate() {
+        if let Some(x) = colors.get_mut(4 + i) {
+            *x = *c;
+        }
+    }
+    for (i, c) in [(2, t.text), (3, t.background)] {
+        if let (Some(x), Some(c)) = (colors.get_mut(i), c) {
+            *x = c;
+        }
+    }
+}
+
+/// Design › Themes › Create New Theme: save a theme (replacing the user's own of that name) and
+/// apply it. Fonts and colours not given (or empty) are the document's current ones.
+fn create_theme(s: &mut Session, v: &Value) -> CmdResult {
+    let name = p::req_str(v, "name")?.trim();
+    if name.is_empty() || name.chars().count() > 64 {
+        return Err(CmdError::Params("a theme name is 1 to 64 characters".into()));
+    }
+    if THEMES.iter().any(|t| t.0.eq_ignore_ascii_case(name)) {
+        return Err(CmdError::Params(format!("`{name}` is a built-in theme; choose another name")));
+    }
+    let color = |key: &str, slot: usize| -> Result<String, CmdError> {
+        match p::str(v, key).filter(|h| !h.trim().is_empty()) {
+            Some(h) => Rgb::parse(h).map(Rgb::hex).ok_or_else(|| CmdError::Params(format!("`{key}`: not a colour: {h:?}"))),
+            None => Ok(s.doc.settings.theme_colors.get(slot).copied().unwrap_or_default().hex()),
+        }
+    };
+    let given: Vec<&Value> = v.get("accents").and_then(Value::as_array).map(|a| a.iter().collect()).unwrap_or_default();
+    if given.len() > 6 {
+        return Err(CmdError::Params("`accents`: at most 6 colours".into()));
+    }
+    let mut accents = Vec::with_capacity(6);
+    for i in 0..6 {
+        accents.push(match given.get(i).filter(|h| h.as_str() != Some("")) {
+            Some(h) => h.as_str().and_then(Rgb::parse).map(Rgb::hex).ok_or_else(|| CmdError::Params(format!("`accents`: not a colour: {h}")))?,
+            None => s.doc.settings.theme_colors.get(4 + i).copied().unwrap_or_default().hex(),
+        });
+    }
+    let font = |key: &str, current: &str| p::str(v, key).map(str::trim).filter(|f| !f.is_empty() && f.len() <= 128).unwrap_or(current).to_string();
+    let theme = CustomTheme {
+        name: name.to_string(),
+        heading: font("heading", &s.doc.settings.major_font),
+        body: font("body", &s.doc.settings.minor_font),
+        accents,
+        text: color("text", 2)?,
+        background: color("background", 3)?,
+    };
+    let themes = &mut s.prefs.themes;
+    if let Some(t) = themes.iter_mut().find(|t| t.name.eq_ignore_ascii_case(name)) {
+        *t = theme;
+    } else if themes.len() >= MAX_CUSTOM_THEMES {
+        return Err(CmdError::Params(format!("at most {MAX_CUSTOM_THEMES} themes; delete one first")));
+    } else {
+        themes.push(theme);
+    }
+    apply_theme(s, &find_theme(s, name)?);
+    sel_result(s)
+}
 
 /// Our own themes: (name, heading font, body font, accent colours).
 pub const THEMES: &[(&str, &str, &str, [Rgb; 6])] = &[
@@ -58,11 +188,24 @@ pub fn specs() -> Vec<CommandSpec> {
         })
         .params(r#"{"heading": string, "body"?: string}"#),
         CommandSpec::new("design.themeColors", "Colors", "Design › Document Formatting", |s, v| {
-            let name = p::req_str(v, "name")?;
-            let t = THEMES.iter().find(|t| t.0.eq_ignore_ascii_case(name)).ok_or_else(|| CmdError::Params(format!("unknown colours `{name}`")))?;
-            set_accent(s, t.3[0]);
+            let t = find_theme(s, p::req_str(v, "name")?)?;
+            set_colors(s, &t);
             sel_result(s)
-        }),
+        })
+        .params(r#"{"name": string}"#),
+        CommandSpec::new("design.createTheme", "Create New Theme", "Design › Document Formatting", create_theme).params(
+            r#"{"name": string, "heading"?: font, "body"?: font, "accents"?: ["RRGGBB"; ≤6], "text"?: "RRGGBB", "background"?: "RRGGBB"}"#,
+        ),
+        CommandSpec::new("design.deleteTheme", "Delete Theme", "Design › Document Formatting", |s, v| {
+            let name = p::req_str(v, "name")?;
+            let before = s.prefs.themes.len();
+            s.prefs.themes.retain(|t| !t.name.eq_ignore_ascii_case(name));
+            if s.prefs.themes.len() == before {
+                return Err(CmdError::Params(format!("no theme of yours is called `{name}`")));
+            }
+            sel_result(s)
+        })
+        .params(r#"{"name": string}"#),
         CommandSpec::new("design.styleSet", "Style Set", "Design › Document Formatting", style_set)
             .params(r#"{"name": "default|basic|lines|shaded|casual|centered|minimalist|title"}"#),
         CommandSpec::new("design.paragraphSpacing", "Paragraph Spacing", "Design › Document Formatting", para_spacing)
@@ -83,9 +226,18 @@ pub fn specs() -> Vec<CommandSpec> {
             sel_result(s)
         })
         .pure(),
-        CommandSpec::new("design.themes", "Theme List", "Design › Document Formatting", |_, _| {
-            Ok(json!(THEMES.iter().map(|t| t.0).collect::<Vec<_>>()))
+        CommandSpec::new("design.themes", "Theme List", "Design › Document Formatting", |s, v| {
+            let all = themes(s);
+            if p::bool(v, "detail").unwrap_or(false) {
+                return Ok(json!(all.iter().map(|t| json!({
+                    "name": t.name, "heading": t.heading, "body": t.body, "custom": t.custom,
+                    "accents": t.accents.iter().map(|c| c.hex()).collect::<Vec<_>>(),
+                    "text": t.text.map(Rgb::hex), "background": t.background.map(Rgb::hex),
+                })).collect::<Vec<_>>()));
+            }
+            Ok(json!(all.iter().map(|t| t.name.as_str()).collect::<Vec<_>>()))
         })
+        .params(r#"{"detail"?: bool}"#)
         .pure(),
     ]
 }
@@ -126,19 +278,15 @@ fn set_accent(s: &mut Session, accent: Rgb) {
 }
 
 fn theme(s: &mut Session, v: &Value) -> CmdResult {
-    let name = p::req_str(v, "name")?;
-    let t = THEMES.iter().find(|t| t.0.eq_ignore_ascii_case(name)).ok_or_else(|| CmdError::Params(format!("unknown theme `{name}`")))?;
-    set_fonts(s, t.1, t.2);
-    set_accent(s, t.3[0]);
-    s.doc.settings.theme_name = t.0.into();
-    let mut colors = s.doc.settings.theme_colors.clone();
-    for (i, c) in t.3.iter().enumerate() {
-        if let Some(x) = colors.get_mut(4 + i) {
-            *x = *c;
-        }
-    }
-    s.doc.settings.theme_colors = colors;
+    let t = find_theme(s, p::req_str(v, "name")?)?;
+    apply_theme(s, &t);
     sel_result(s)
+}
+
+fn apply_theme(s: &mut Session, t: &Theme) {
+    set_fonts(s, &t.heading, &t.body);
+    set_colors(s, t);
+    s.doc.settings.theme_name = t.name.clone();
 }
 
 fn style_set(s: &mut Session, v: &Value) -> CmdResult {

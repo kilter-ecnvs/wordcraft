@@ -1294,25 +1294,71 @@ fn style_set_box(app: &mut WordApp, ui: &mut Ui) -> (Rect, Rect) {
     (gallery, gui.min_rect())
 }
 
+/// The Themes or Colors menu: each theme with its colours, ours then the user's, and the item
+/// that makes a new one.
+fn theme_menu(ui: &mut Ui, app: &mut WordApp, id: &str, create: &str) {
+    let all = wordcraft_engine::cmd::design::themes(&app.session);
+    let current = app.session.doc.settings.theme_name.clone();
+    for (heading, custom) in [("Built-In", false), ("Custom", true)] {
+        let list: Vec<_> = all.iter().filter(|t| t.custom == custom).collect();
+        if list.is_empty() {
+            continue;
+        }
+        ui.label(egui::RichText::new(tl!(heading)).font(semibold(11.5)).color(Tokens::get(ui.ctx()).text_dim));
+        for t in list {
+            theme_item(ui, app, t, id, t.name.eq_ignore_ascii_case(&current));
+        }
+    }
+    ui.separator();
+    mi(ui, app, create, "ui.dialog", json!({"name": "createTheme"}));
+}
+
+/// A theme menu entry: its six accent colours, then its name; the document's theme is outlined.
+fn theme_item(ui: &mut Ui, app: &mut WordApp, t: &wordcraft_engine::cmd::design::Theme, id: &str, current: bool) {
+    let name = if t.custom { t.name.clone() } else { tl!(t.name.as_str()).to_string() };
+    let tok = Tokens::get(ui.ctx());
+    let galley = ui.painter().layout_no_wrap(name.clone(), egui::TextStyle::Button.resolve(ui.style()), tok.text);
+    let (size, gap) = (12.0, 3.0);
+    let swatches = 6.0 * (size + gap);
+    let (rect, resp) = ui.allocate_exact_size(vec2((swatches + galley.size().x + 24.0).max(220.0), 24.0), Sense::click());
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, &name));
+    let painter = ui.painter();
+    if resp.hovered() {
+        painter.rect_filled(rect, 3.0, tok.hover);
+    }
+    if current {
+        painter.rect_stroke(rect.shrink(1.0), 3.0, Stroke::new(1.0, tok.accent), egui::StrokeKind::Inside);
+    }
+    let mut x = rect.left() + 8.0;
+    for c in t.accents {
+        let r = Rect::from_min_size(pos2(x, rect.center().y - size / 2.0), vec2(size, size));
+        painter.rect_filled(r, 2.0, crate::theme::c32(c));
+        painter.rect_stroke(r, 2.0, Stroke::new(0.5, tok.border_strong), egui::StrokeKind::Inside);
+        x += size + gap;
+    }
+    painter.galley(pos2(x + 6.0, rect.center().y - galley.size().y / 2.0), galley, tok.text);
+    if resp.clicked() {
+        crate::widgets::run_from_ribbon(app, id, json!({"name": t.name}));
+        ui.close();
+    }
+}
+
 fn design(app: &mut WordApp, ui: &mut Ui) {
     group(ui, "Themes", None, app, |ui, app| {
         menu_button(ui, app, "themes", Some("Themes"), "Themes", true, "design.themes", |ui, app| {
-            for (name, ..) in wordcraft_engine::cmd::design::THEMES {
-                mi(ui, app, name, "design.theme", json!({"name": name}));
-            }
+            theme_menu(ui, app, "design.theme", "Create New Theme…");
         });
     });
     group(ui, "Document Formatting", None, app, |ui, app| {
         style_set_box(app, ui);
         stack(ui, |ui| {
             menu_button(ui, app, "colors", Some("Colors"), "Theme Colors", false, "design.themeColors", |ui, app| {
-                for (name, ..) in wordcraft_engine::cmd::design::THEMES {
-                    mi(ui, app, name, "design.themeColors", json!({"name": name}));
-                }
+                theme_menu(ui, app, "design.themeColors", "Customize Colors…");
             });
             menu_button(ui, app, "fonts", Some("Fonts"), "Theme Fonts", false, "design.themeFonts", |ui, app| {
-                for (name, h, b, _) in wordcraft_engine::cmd::design::THEMES {
-                    mi_text(ui, app, &format!("{}: {h} / {b}", tl!(name)), "design.themeFonts", json!({"heading": h, "body": b}));
+                for t in wordcraft_engine::cmd::design::themes(&app.session) {
+                    let (name, h, b) = (if t.custom { t.name.clone() } else { tl!(t.name.as_str()).to_string() }, &t.heading, &t.body);
+                    mi_text(ui, app, &format!("{name}: {h} / {b}"), "design.themeFonts", json!({"heading": h, "body": b}));
                 }
             });
         });

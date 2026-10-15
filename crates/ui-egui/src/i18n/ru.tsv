@@ -2632,3 +2632,11 @@ preview	Title	Пример
 	New documents:	Новые документы:
 	Same as the interface language	Как язык интерфейса
 	New documents are checked in this language. For text you've already written, use Review › Language.	Новые документы проверяются на этом языке. Для уже написанного текста используйте Рецензирование › Язык.
+	Create New Theme	Создать тему
+	Delete Theme	Удалить тему
+	Create New Theme…	Создать тему…
+	Customize Colors…	Настроить цвета…
+	Heading font:	Шрифт заголовков:
+	Body font:	Шрифт основного текста:
+	Background:	Фон:
+	Accent {n}:	Акцент {n}:

@@ -2235,3 +2235,11 @@
 	New documents:	新しい文書:
 	Same as the interface language	表示言語と同じ
 	New documents are checked in this language. For text you've already written, use Review › Language.	新しい文書はこの言語で校正されます。既に入力したテキストには 校閲 › 言語 を使用します。
+	Create New Theme	新しいテーマの作成
+	Delete Theme	テーマの削除
+	Create New Theme…	新しいテーマの作成…
+	Customize Colors…	色のカスタマイズ…
+	Heading font:	見出しのフォント:
+	Body font:	本文のフォント:
+	Background:	背景:
+	Accent {n}:	アクセント {n}:
