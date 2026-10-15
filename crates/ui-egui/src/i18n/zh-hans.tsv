@@ -206,7 +206,6 @@
 	Show the mini toolbar when text is selected	选择文本时显示浮动工具栏
 	Spaces	空格
 	Spelling	拼写
-	Spelling and grammar are checked in English (United States).	拼写和语法按英语（美国）检查。
 	Tab characters	制表符
 	Tab stop position:	制表位位置：
 	Default tab stops:	默认制表位：
@@ -2245,3 +2244,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	窄
 	Medium	中等
+	New documents:	新文档：
+	Same as the interface language	与界面语言相同
+	New documents are checked in this language. For text you've already written, use Review › Language.	新文档使用此语言校对。对于已写好的文字，请使用 审阅 › 语言。

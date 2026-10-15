@@ -255,7 +255,6 @@
 	Show the mini toolbar when text is selected	Прикажи мини траку са алаткама при избору текста
 	Spaces	Размаци
 	Spelling	Правопис
-	Spelling and grammar are checked in English (United States).	Правопис и граматика се проверавају на енглеском (Сједињене Државе).
 	Tab characters	Знакови табулатора
 	Tab stop position:	Положај табулатора:
 	Default tab stops:	Подразумевани табулатори:
@@ -2247,3 +2246,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	Уска
 	Medium	Средња
+	New documents:	Нови документи:
+	Same as the interface language	Исто као језик интерфејса
+	New documents are checked in this language. For text you've already written, use Review › Language.	Нови документи се проверавају на овом језику. За већ написан текст користите Преглед › Језик.

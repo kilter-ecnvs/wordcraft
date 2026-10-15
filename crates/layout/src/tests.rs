@@ -5453,7 +5453,7 @@ fn hyphenation_and_proofing_follow_each_runs_language() {
     let issues = para::paragraph_issues(p, &para::proof_runs(&d, p, None), &Default::default(), true);
     assert_eq!(issues.iter().map(|i| (i.start, i.end, i.kind == wordcraft_proof::IssueKind::Grammar)).collect::<Vec<_>>(), para.issues);
     assert_eq!(issues[0].lang, wordcraft_proof::ProofLang::Pl);
-    assert_eq!(issues[1].lang, wordcraft_proof::ProofLang::En);
+    assert_eq!(issues[1].lang, wordcraft_proof::ProofLang::EnUs);
 }
 
 /// Text in a language WordCraft can't proof gets no spelling marks, and "Do not check spelling

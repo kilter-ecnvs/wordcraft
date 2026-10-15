@@ -2149,7 +2149,6 @@
 	Show the mini toolbar when text is selected	Hiện thanh công cụ mini khi chọn chữ
 	Spaces	Khoảng trắng
 	Spelling	Chính tả
-	Spelling and grammar are checked in English (United States).	Soát chính tả và ngữ pháp bằng tiếng Anh (Mỹ).
 	Tab characters	Ký tự tab
 	These marks show even when Show/Hide ¶ is off.	Các dấu này vẫn hiện cả khi đã tắt Hiện/Ẩn ¶.
 	Typing replaces selected text	Gõ sẽ thay thế văn bản đã chọn
@@ -2672,3 +2671,6 @@ template	Letter	Thư
 # Reading Mode column widths (#1040)
 	Narrow	Hẹp
 	Medium	Trung bình
+	New documents:	Tài liệu mới:
+	Same as the interface language	Giống ngôn ngữ giao diện
+	New documents are checked in this language. For text you've already written, use Review › Language.	Tài liệu mới được kiểm tra bằng ngôn ngữ này. Với văn bản đã viết, hãy dùng Xem lại › Ngôn ngữ.

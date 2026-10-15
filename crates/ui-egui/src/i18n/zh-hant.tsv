@@ -195,7 +195,6 @@
 	Show the mini toolbar when text is selected	選取文字時顯示迷你工具列
 	Spaces	空格
 	Spelling	拼字
-	Spelling and grammar are checked in English (United States).	拼字和文法依英文（美國）檢查。
 	Tab characters	定位字元
 	Tab stop position:	定位點位置：
 	Default tab stops:	預設定位點間距：
@@ -2234,3 +2233,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	窄
 	Medium	中等
+	New documents:	新文件：
+	Same as the interface language	與介面語言相同
+	New documents are checked in this language. For text you've already written, use Review › Language.	新文件使用此語言校訂。對於已撰寫的文字，請使用 校閱 › 語言。

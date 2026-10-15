@@ -157,7 +157,6 @@
 	Show the mini toolbar when text is selected	텍스트를 선택할 때 미니 도구 모음 표시
 	Spaces	공백
 	Spelling	맞춤법
-	Spelling and grammar are checked in English (United States).	맞춤법과 문법은 영어(미국)로 검사합니다.
 	Tab characters	탭 문자
 	Tab stop position:	탭 위치:
 	Default tab stops:	기본 탭 위치:
@@ -2488,3 +2487,6 @@ preview	Title	제목
 	Bottom Right Cell	오른쪽 아래 셀
 	Inside Horizontal Border	안쪽 가로 테두리
 	Inside Vertical Border	안쪽 세로 테두리
+	New documents:	새 문서:
+	Same as the interface language	인터페이스 언어와 동일
+	New documents are checked in this language. For text you've already written, use Review › Language.	새 문서는 이 언어로 검사됩니다. 이미 작성한 텍스트에는 검토 › 언어를 사용하세요.

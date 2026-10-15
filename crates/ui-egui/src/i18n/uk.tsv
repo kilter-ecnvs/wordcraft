@@ -176,7 +176,6 @@
 	Show the mini toolbar when text is selected	Показувати міні-панель інструментів під час виділення тексту
 	Spaces	Пробіли
 	Spelling	Правопис
-	Spelling and grammar are checked in English (United States).	Правопис і граматика перевіряються англійською (США).
 	Tab characters	Символи табуляції
 	Tab stop position:	Позиція табуляції:
 	Default tab stops:	Типові позиції табуляції:
@@ -2245,3 +2244,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	Вузька
 	Medium	Середня
+	New documents:	Нові документи:
+	Same as the interface language	Як мова інтерфейсу
+	New documents are checked in this language. For text you've already written, use Review › Language.	Нові документи перевіряються цією мовою. Для вже написаного тексту скористайтеся Рецензування › Мова.

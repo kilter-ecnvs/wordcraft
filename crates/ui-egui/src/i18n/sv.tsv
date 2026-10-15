@@ -172,7 +172,6 @@
 	Show the mini toolbar when text is selected	Visa miniverktygsfältet när text är markerad
 	Spaces	Blanksteg
 	Spelling	Stavning
-	Spelling and grammar are checked in English (United States).	Stavning och grammatik kontrolleras på engelska (USA).
 	Tab characters	Tabbtecken
 	Tab stop position:	Tabbstoppets position:
 	Default tab stops:	Standardtabbstopp:
@@ -2647,3 +2646,6 @@ preview	Title	Titel
 	Bottom Right Cell	Nedre högra cellen
 	Inside Horizontal Border	Inre vågrät kantlinje
 	Inside Vertical Border	Inre lodrät kantlinje
+	New documents:	Nya dokument:
+	Same as the interface language	Samma som gränssnittsspråket
+	New documents are checked in this language. For text you've already written, use Review › Language.	Nya dokument kontrolleras på det här språket. För text du redan har skrivit använder du Granska › Språk.

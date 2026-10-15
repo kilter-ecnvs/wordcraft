@@ -1460,7 +1460,6 @@
 	Show the mini toolbar when text is selected	Minisymbolleiste bei Textauswahl anzeigen
 	Spaces	Leerzeichen
 	Spelling	Rechtschreibung
-	Spelling and grammar are checked in English (United States).	Rechtschreibung und Grammatik werden auf Englisch (USA) geprüft.
 	Tab characters	Tabstoppzeichen
 	These marks show even when Show/Hide ¶ is off.	Diese Zeichen werden auch angezeigt, wenn ¶ ein-/ausblenden deaktiviert ist.
 	Typing replaces selected text	Eingabe ersetzt markierten Text
@@ -2232,3 +2231,6 @@
 # Reading Mode column widths (#1040)
 	Narrow	Schmal
 	Medium	Mittel
+	New documents:	Neue Dokumente:
+	Same as the interface language	Wie die Benutzeroberflächensprache
+	New documents are checked in this language. For text you've already written, use Review › Language.	Neue Dokumente werden in dieser Sprache geprüft. Für bereits geschriebenen Text verwenden Sie Überprüfen › Sprache.

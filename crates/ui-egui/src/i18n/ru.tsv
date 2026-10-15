@@ -2450,7 +2450,6 @@ preview	Title	Пример
 	Show the mini toolbar when text is selected	Показывать мини-панель при выделении текста
 	Spaces	Пробелы
 	Spelling	Орфография
-	Spelling and grammar are checked in English (United States).	Орфография и грамматика проверяются для английского языка (США).
 	Tab characters	Знаки табуляции
 	These marks show even when Show/Hide ¶ is off.	Эти знаки видны, даже когда «Показать все знаки» выключено.
 	Typing replaces selected text	Ввод заменяет выделенный текст
@@ -2630,3 +2629,6 @@ preview	Title	Пример
 # Reading Mode column widths (#1040)
 	Narrow	Узкая
 	Medium	Средняя
+	New documents:	Новые документы:
+	Same as the interface language	Как язык интерфейса
+	New documents are checked in this language. For text you've already written, use Review › Language.	Новые документы проверяются на этом языке. Для уже написанного текста используйте Рецензирование › Язык.

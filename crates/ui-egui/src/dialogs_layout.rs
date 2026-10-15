@@ -438,7 +438,7 @@ impl LanguageForm {
 }
 
 /// A language's name in the interface language (the tag itself when we don't know it).
-fn language_name(tag: &str) -> String {
+pub(crate) fn language_name(tag: &str) -> String {
     LANGUAGES.iter().find(|(t, _)| t.eq_ignore_ascii_case(tag)).map(|(_, n)| tl!(n).to_string()).unwrap_or_else(|| tag.to_string())
 }
 

@@ -5,11 +5,19 @@
 /// A language WordCraft can proof, or [`ProofLang::Other`] for one it can't.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ProofLang {
-    /// English, any region (`en`, `en-US`, `en-GB`…): the public-domain Moby word list, the
-    /// English grammar rules and the English hyphenation dictionary and patterns. Also text with
-    /// no language at all (WordCraft's default editing language is US English, like Word's).
+    /// English with no region or one without its own spelling (`en`, `en-AU`, `en-IE`…): the
+    /// public-domain Moby word list, the English grammar rules and the English hyphenation
+    /// dictionary and patterns; US and British spellings are both accepted. Also text with no
+    /// language at all (WordCraft's default editing language is US English, like Word's).
     #[default]
     En,
+    /// English (United States), `en-US`: [`ProofLang::En`]'s tools, and British-only spellings
+    /// (`colour`, `centre`) are flagged with the US one suggested ([`crate::variant`]).
+    EnUs,
+    /// English (United Kingdom), `en-GB`: [`ProofLang::En`]'s tools, and US-only spellings
+    /// (`color`, `center`) are flagged with the British one suggested. `-ize` stays accepted
+    /// (Oxford spelling), as in Word.
+    EnGb,
     /// Polish (`pl`, `pl-PL`): the installed Hunspell dictionary (when there is one), the Polish grammar rules and the Polish
     /// hyphenation patterns.
     Pl,
@@ -53,7 +61,12 @@ impl ProofLang {
         let Some(tag) = tag.map(str::trim).filter(|t| !t.is_empty()) else { return ProofLang::En };
         let primary = tag.split(['-', '_']).next().unwrap_or("");
         if primary.eq_ignore_ascii_case("en") || primary.eq_ignore_ascii_case("eng") {
-            ProofLang::En
+            // The region is the first two-letter subtag (`en-Latn-US`, `en_GB.UTF-8`).
+            match tag.split(['-', '_', '.']).skip(1).find(|s| s.len() == 2) {
+                Some(r) if r.eq_ignore_ascii_case("us") => ProofLang::EnUs,
+                Some(r) if r.eq_ignore_ascii_case("gb") || r.eq_ignore_ascii_case("uk") => ProofLang::EnGb,
+                _ => ProofLang::En,
+            }
         } else if primary.eq_ignore_ascii_case("pl") || primary.eq_ignore_ascii_case("pol") {
             ProofLang::Pl
         } else if primary.eq_ignore_ascii_case("bg") || primary.eq_ignore_ascii_case("bul") {
@@ -78,7 +91,7 @@ impl ProofLang {
     /// The primary language subtag (`en`, `pl`, `bg`, `tr`, `ru`, `cs`); empty for [`ProofLang::Other`].
     pub fn code(self) -> &'static str {
         match self {
-            ProofLang::En => "en",
+            ProofLang::En | ProofLang::EnUs | ProofLang::EnGb => "en",
             ProofLang::Pl => "pl",
             ProofLang::Bg => "bg",
             ProofLang::Pt => "pt",
@@ -93,7 +106,12 @@ impl ProofLang {
 
     /// Does WordCraft check spelling and grammar in this language?
     pub fn is_proofed(self) -> bool {
-        Self::PROOFED.contains(&self)
+        self.is_english() || Self::PROOFED.contains(&self)
+    }
+
+    /// English of any region.
+    pub fn is_english(self) -> bool {
+        matches!(self, ProofLang::En | ProofLang::EnUs | ProofLang::EnGb)
     }
 }
 
@@ -171,9 +189,16 @@ mod tests {
         }
         assert_eq!(ProofLang::Cs.code(), "cs");
         assert!(ProofLang::Cs.is_proofed() && ProofLang::PROOFED.contains(&ProofLang::Cs));
-        for t in ["en", "en-US", "en-GB", "EN_au", "en-Latn-US"] {
+        for t in ["en", "EN_au", "en-IE", "eng", "en-Latn"] {
             assert_eq!(ProofLang::from_tag(Some(t)), ProofLang::En, "{t}");
         }
+        for t in ["en-US", "EN_us", "en-Latn-US", "en_US.UTF-8"] {
+            assert_eq!(ProofLang::from_tag(Some(t)), ProofLang::EnUs, "{t}");
+        }
+        for t in ["en-GB", "en_gb", "en-UK", "en_GB.UTF-8"] {
+            assert_eq!(ProofLang::from_tag(Some(t)), ProofLang::EnGb, "{t}");
+        }
+        assert!([ProofLang::En, ProofLang::EnUs, ProofLang::EnGb].iter().all(|l| l.is_proofed() && l.is_english() && l.code() == "en"));
         for t in ["bg", "bg-BG", "BG_bg", "bg_BG.UTF-8", "bul"] {
             assert_eq!(ProofLang::from_tag(Some(t)), ProofLang::Bg, "{t}");
         }

@@ -2246,7 +2246,6 @@ preview	Title	Ukázka
 	Show the mini toolbar when text is selected	Při výběru textu zobrazit miniaturní panel nástrojů
 	Spaces	Mezery
 	Spelling	Pravopis
-	Spelling and grammar are checked in English (United States).	Pravopis a mluvnice se kontrolují v angličtině (Spojené státy).
 	Tab characters	Znaky tabulátoru
 	These marks show even when Show/Hide ¶ is off.	Tyto značky se zobrazují, i když je vypnuto Zobrazit/skrýt ¶.
 	Typing replaces selected text	Psaný text nahrazuje vybraný text
@@ -2624,3 +2623,6 @@ preview	Title	Ukázka
 # Reading Mode column widths (#1040)
 	Narrow	Úzká
 	Medium	Střední
+	New documents:	Nové dokumenty:
+	Same as the interface language	Stejný jako jazyk rozhraní
+	New documents are checked in this language. For text you've already written, use Review › Language.	Nové dokumenty se kontrolují v tomto jazyce. Pro již napsaný text použijte Revize › Jazyk.
