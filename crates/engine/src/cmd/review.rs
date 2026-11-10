@@ -116,6 +116,7 @@ pub fn specs() -> Vec<CommandSpec> {
             // For this session only, as in Word: not added to (or saved with) the dictionary.
             if !w.trim().is_empty() {
                 wordcraft_proof::ignore_word(w.trim());
+                wordcraft_layout::external::ignore(w.trim());
             }
             s.relayout();
             Ok(json!({"ignored": w}))

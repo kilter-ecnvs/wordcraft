@@ -7,12 +7,19 @@ use super::{CharProps, Document, Paragraph, ResolvedChar};
 pub struct ProofRun {
     pub range: std::ops::Range<usize>,
     pub lang: wordcraft_proof::ProofLang,
+    /// The language tag as the document gives it (an external checker is asked in it).
+    pub tag: Option<String>,
     pub skip: bool,
 }
 
 impl ProofRun {
     pub(super) fn of(range: std::ops::Range<usize>, rc: &ResolvedChar) -> ProofRun {
-        ProofRun { range, lang: wordcraft_proof::ProofLang::from_tag(rc.lang.as_deref()), skip: rc.no_proof || rc.hidden || rc.link.is_some() }
+        ProofRun {
+            range,
+            lang: wordcraft_proof::ProofLang::from_tag(rc.lang.as_deref()),
+            tag: rc.lang.clone(),
+            skip: rc.no_proof || rc.hidden || rc.link.is_some(),
+        }
     }
 }
 
@@ -47,6 +54,19 @@ pub fn paragraph_issues(
     let text = proof_text(p);
     let spans: Vec<(std::ops::Range<usize>, wordcraft_proof::ProofLang)> = runs.iter().map(|r| (r.range.clone(), r.lang)).collect();
     let skipped = skipped_ranges(runs);
+    let skip = |a: usize, b: usize| !skipped.is_empty() && overlaps(&skipped, a, b);
+    // The external checker's result for this text when it has one (#575), each issue in the
+    // language of the run it is in; grammar marks only with `grammar`.
+    let external_language = crate::external::wanted(runs.first().and_then(|r| r.tag.as_deref()));
+    if let Some(found) = crate::external::check(&text, &external_language) {
+        let lang_at = |at: usize| spans.iter().find(|(r, _)| r.contains(&at)).map(|(_, l)| *l).unwrap_or_default();
+        return found
+            .into_iter()
+            .filter(|i| !skip(i.start, i.end) && (grammar || i.kind != wordcraft_proof::IssueKind::Grammar))
+            .filter(|i| i.kind != wordcraft_proof::IssueKind::Spelling || !crate::external::spelling_ignored_by_options(&text, i.start, i.end, spelling))
+            .map(|i| wordcraft_proof::Issue { lang: lang_at(i.start), ..i })
+            .collect();
+    }
     let issues = wordcraft_proof::check_text_with(&text, &spans, spelling, grammar, list_item);
     if skipped.is_empty() {
         return issues;
@@ -77,6 +97,14 @@ fn overlaps(skipped: &[(usize, usize)], a: usize, b: usize) -> bool {
     crate::work::steps(1);
     let k = skipped.partition_point(|&(_, e)| e <= a);
     skipped.get(k).is_some_and(|&(s, _)| s < b)
+}
+
+/// The language an external checker is asked to check `p` in: the setting, or the language of
+/// its first run (the one the checker's scheduler uses).
+pub fn external_language(doc: &Document, p: &Paragraph) -> String {
+    let plain = CharProps::default();
+    let first = p.run_ranges().next().map(|(_, c)| c).unwrap_or(&plain);
+    crate::external::wanted(doc.styles.resolve_char(p.props.style.as_deref(), first).lang.as_deref())
 }
 
 /// Whether the paragraph is a list item: its own numbering, or its style's, names a list (not 0).

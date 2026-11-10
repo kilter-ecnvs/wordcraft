@@ -23,6 +23,7 @@ fn test_fonts() {
 pub mod balloons;
 mod contour;
 pub mod display;
+pub mod external;
 pub mod fields;
 pub mod hit;
 pub mod kinsoku;
