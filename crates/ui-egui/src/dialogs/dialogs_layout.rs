@@ -255,7 +255,7 @@ fn theme_ui(app: &mut WordApp, ui: &mut Ui, f: &mut ThemeForm) -> bool {
             };
             ui.label(label);
             // Each field its own id: the More Colors… answer must come back to the right one.
-            ui.push_id(i, |ui| crate::dialogs::color_field(ui, &palette, value, "Automatic", ""));
+            ui.push_id(i, |ui| crate::dialogs::chrome::color_field(ui, &palette, value, "Automatic", ""));
             ui.end_row();
         }
     });

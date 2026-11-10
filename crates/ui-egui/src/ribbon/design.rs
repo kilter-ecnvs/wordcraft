@@ -44,7 +44,7 @@ fn theme_item(ui: &mut Ui, app: &mut WordApp, t: &wordcraft_engine::cmd::design:
     let (size, gap) = (12.0, 3.0);
     let swatches = 6.0 * (size + gap);
     let (rect, resp) = ui.allocate_exact_size(vec2((swatches + galley.size().x + 24.0).max(220.0), 24.0), Sense::click());
-    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, &name));
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &name));
     let painter = ui.painter();
     if resp.hovered() {
         painter.rect_filled(rect, 3.0, tok.hover);

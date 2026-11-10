@@ -164,7 +164,7 @@ mod tests {
     use super::*;
 
     fn run(range: std::ops::Range<usize>, skip: bool) -> ProofRun {
-        ProofRun { range, lang: Default::default(), skip }
+        ProofRun { range, lang: Default::default(), tag: None, skip }
     }
 
     /// The lookup finds what a look at every run finds, overlapping and empty runs included.
