@@ -8,7 +8,7 @@
 //! `caret.set` and `text.optionalHyphen`, `review.language`, `mailings.envelopes`,
 //! `mailings.labels`, `table.formula`, `table.sort`, `table.split`, `table.fromText`,
 //! `picture.size`, `layout.pageNumberFormat`), so scripts and agents get the same result without
-//! the dialog. Shown through [`crate::dialogs::Dialog::Layout`].
+//! the dialog; Create New Theme (Design › Themes and Colors) runs `design.createTheme`. Shown through [`crate::dialogs::Dialog::Layout`].
 
 use egui::{Ui, vec2};
 use serde::Serialize;
@@ -58,6 +58,7 @@ pub enum LayoutDialog {
     TableToText(TableToTextForm),
     Size(SizeForm),
     PageNumbers(PageNumbersForm),
+    Theme(ThemeForm),
 }
 
 impl LayoutDialog {
@@ -76,6 +77,7 @@ impl LayoutDialog {
             LayoutDialog::TableToText(_) => "tableToText",
             LayoutDialog::Size(_) => "pictureSize",
             LayoutDialog::PageNumbers(_) => "pageNumbers",
+            LayoutDialog::Theme(_) => "createTheme",
         }
     }
 
@@ -95,6 +97,7 @@ impl LayoutDialog {
             LayoutDialog::TableToText(_) => "Convert to Text",
             LayoutDialog::Size(_) => "Size",
             LayoutDialog::PageNumbers(_) => "Page Number Format",
+            LayoutDialog::Theme(_) => "Create New Theme",
         }
     }
 }
@@ -115,6 +118,7 @@ pub fn open(name: &str, app: &mut WordApp) -> Option<LayoutDialog> {
         "tableToText" => LayoutDialog::TableToText(TableToTextForm::read(app)?),
         "pictureSize" => LayoutDialog::Size(SizeForm::read(app)?),
         "pageNumbers" => LayoutDialog::PageNumbers(PageNumbersForm::read(app)),
+        "createTheme" => LayoutDialog::Theme(ThemeForm::read(app)),
         _ => return None,
     })
 }
@@ -135,6 +139,7 @@ pub fn body(app: &mut WordApp, ui: &mut Ui, d: &mut LayoutDialog) -> bool {
         LayoutDialog::TableToText(f) => table_to_text_ui(app, ui, f),
         LayoutDialog::Size(f) => size_ui(app, ui, f),
         LayoutDialog::PageNumbers(f) => page_numbers_ui(app, ui, f),
+        LayoutDialog::Theme(f) => theme_ui(app, ui, f),
     }
 }
 
@@ -179,3 +184,101 @@ fn unit() -> wordcraft_geom::Unit {
 
 #[cfg(test)]
 mod tests;
+
+// ---------------------------------------------------------------------------------------------
+// Create New Theme
+
+/// The Create New Theme dialog's fields: the document's current theme to start from. `colors`
+/// are hex: Text/Background – Dark 2, Light 2, then Accent 1–6.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThemeForm {
+    pub name: String,
+    pub heading: String,
+    pub body: String,
+    pub colors: [String; 8],
+}
+
+impl ThemeForm {
+    pub fn read(app: &WordApp) -> ThemeForm {
+        let s = &app.session;
+        let theme = &s.doc.settings.theme_colors;
+        let slot = |i: usize| theme.get(i).copied().unwrap_or_default().hex();
+        // The document's own theme when it's the user's (to change it), else a new name.
+        let current = &s.doc.settings.theme_name;
+        let name = if s.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(current)) {
+            current.clone()
+        } else {
+            let custom = tl!("Custom");
+            (1..).map(|n| format!("{custom} {n}")).find(|n| !s.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(n))).unwrap_or_default()
+        };
+        ThemeForm {
+            name,
+            heading: s.doc.settings.major_font.clone(),
+            body: s.doc.settings.minor_font.clone(),
+            colors: [2, 3, 4, 5, 6, 7, 8, 9].map(slot),
+        }
+    }
+
+    /// `design.createTheme` parameters for Save.
+    pub fn params(&self) -> Value {
+        let [text, background, accents @ ..] = &self.colors;
+        json!({"name": self.name, "heading": self.heading, "body": self.body, "accents": accents, "text": text, "background": background})
+    }
+}
+
+fn theme_ui(app: &mut WordApp, ui: &mut Ui, f: &mut ThemeForm) -> bool {
+    let palette = app.session.doc.settings.theme_colors.clone();
+    egui::Grid::new("create_theme").num_columns(2).spacing(vec2(12.0, 6.0)).show(ui, |ui| {
+        ui.label(tl!("Name:"));
+        ui.add(egui::TextEdit::singleline(&mut f.name).desired_width(220.0));
+        ui.end_row();
+        for (label, font, id) in [("Heading font:", &mut f.heading, "theme_heading"), ("Body font:", &mut f.body, "theme_body")] {
+            ui.label(tl!(label));
+            let shown = app.previews.font_shown(font);
+            let fams = app.previews.families();
+            let prev = app.previews.font_preview_fn();
+            if let Some(picked) = crate::widgets::font_combo(ui, id, 220.0, &shown, &fams, Some(&*prev)) {
+                if picked == crate::widgets::ADD_FONT {
+                    let _ = app.run("font.add", json!({}));
+                } else {
+                    *font = app.previews.font_stored(&picked);
+                }
+            }
+            ui.end_row();
+        }
+        for (i, value) in f.colors.iter_mut().enumerate() {
+            let label = match i {
+                0 => tl!("Text:").to_string(),
+                1 => tl!("Background:").to_string(),
+                n => crate::i18n::fmt(tl!("Accent {n}:"), &[("n", &(n - 1).to_string())]),
+            };
+            ui.label(label);
+            // Each field its own id: the More Colors… answer must come back to the right one.
+            ui.push_id(i, |ui| crate::dialogs::color_field(ui, &palette, value, "Automatic", ""));
+            ui.end_row();
+        }
+    });
+    // Preview: the colours as the Themes menu will show them.
+    ui.add_space(6.0);
+    ui.horizontal(|ui| {
+        for c in f.colors.iter().filter_map(|h| wordcraft_doc::Rgb::parse(h)) {
+            let (r, _) = ui.allocate_exact_size(vec2(22.0, 22.0), egui::Sense::hover());
+            ui.painter().rect_filled(r, 3.0, crate::theme::c32(c));
+            ui.painter().rect_stroke(r, 3.0, egui::Stroke::new(0.5, crate::theme::Tokens::get(ui.ctx()).border_strong), egui::StrokeKind::Inside);
+        }
+    });
+    let name = f.name.trim().to_string();
+    let saved = app.session.prefs.themes.iter().any(|t| t.name.eq_ignore_ascii_case(&name));
+    if saved {
+        ui.add_space(4.0);
+        if ui.button(tl!("Delete Theme")).clicked() {
+            return run(app, "design.deleteTheme", json!({"name": name}));
+        }
+    }
+    let (ok, cancel) = buttons(ui, "Save", !name.is_empty());
+    if ok {
+        return run(app, "design.createTheme", f.params());
+    }
+    cancel
+}

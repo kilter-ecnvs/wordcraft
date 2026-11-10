@@ -794,3 +794,40 @@ fn size_dialog_typed_height_then_ok_without_enter_applies_it() {
     assert!(h.state().dialog.is_none(), "Esc cancels the dialog");
     assert_eq!(selected_size(h.state()), (30.0, 15.0), "nothing applied");
 }
+
+/// Design › Themes › Create New Theme… starts from the document's theme under a free name;
+/// Save keeps it and applies it, and opening the dialog on it again offers Delete Theme.
+#[test]
+fn create_new_theme_saves_and_deletes() {
+    use egui_kittest::kittest::Queryable;
+    let mut a = app();
+    a.run("design.theme", json!({"name": "Studio"})).unwrap();
+    a.run("ui.dialog", json!({"name": "createTheme"})).unwrap();
+    let LayoutDialog::Theme(mut f) = form(&mut a) else { panic!("create theme") };
+    assert_eq!((f.name.as_str(), f.heading.as_str()), ("Custom 1", "Georgia"));
+    assert_eq!(f.colors[2], "8C2F39", "Studio's accent 1");
+    f.colors[2] = "123456".into();
+    f.colors[7] = String::new(); // Automatic: keeps the document's accent 6
+    a.run("design.createTheme", f.params()).unwrap();
+    let t = &a.session.prefs.themes[0];
+    assert_eq!((t.name.as_str(), t.accents[0].as_str(), t.accents[5].as_str()), ("Custom 1", "123456", "4A4A4A"));
+    assert_eq!(a.session.doc.settings.theme_name, "Custom 1");
+
+    // Drawn: the dialog reopens on the document's theme, with Delete Theme.
+    let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1440.0, 900.0)).build_ui_state(
+        |ui, app: &mut WordApp| {
+            let ctx = ui.ctx().clone();
+            app.logic(&ctx);
+            app.ui(ui);
+        },
+        a,
+    );
+    h.run_steps(2);
+    h.state_mut().run("ui.dialog", json!({"name": "createTheme"})).unwrap();
+    h.run_steps(3);
+    assert!(h.query_by_label("Heading font:").is_some(), "the dialog shows");
+    h.get_by_label("Delete Theme").click();
+    h.run_steps(3);
+    assert!(h.state().session.prefs.themes.is_empty());
+    assert!(h.state().dialog.is_none(), "Delete closes it");
+}

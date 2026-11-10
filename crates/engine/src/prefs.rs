@@ -62,11 +62,14 @@ pub struct Prefs {
     /// in Word). A damaged saved value reads as the defaults.
     #[serde(deserialize_with = "crate::cmd::tools::lenient_autocorrect")]
     pub autocorrect: crate::cmd::tools::AutoCorrectPrefs,
+    /// Themes the user made (Design › Themes › Create New Theme), offered in every document.
+    pub themes: Vec<crate::cmd::design::CustomTheme>,
 }
 
 impl Default for Prefs {
     fn default() -> Self {
         Prefs {
+            themes: Vec::new(),
             paper_color: Default::default(),
             count_notes: true,
             markup: Default::default(),
