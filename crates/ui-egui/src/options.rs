@@ -460,6 +460,9 @@ fn language_name(lang: wordcraft_engine::proof::ProofLang) -> &'static str {
     }
 }
 
+/// A LanguageTool server on this computer, at the port its documentation uses.
+const LOCAL_LANGUAGETOOL: &str = "http://localhost:8081";
+
 /// Options › Proofing › LanguageTool (#575). Off by default: when on, paragraph
 /// text goes to the chosen server. The server and account are drafted and applied together; the
 /// switch and language go through `ui.languageTool`.
@@ -488,9 +491,25 @@ fn language_tool(app: &mut WordApp, ui: &mut Ui) {
         .small()
         .weak(),
     );
-    let mut enter = false;
+    // The two usual servers in one click: a LanguageTool server on this computer (text stays
+    // here) or LanguageTool's own. Any other address goes in the field below.
+    let same = |a: &str, b: &str| a.trim().trim_end_matches('/').eq_ignore_ascii_case(b);
+    let server = app.ui.language_tool.server.clone();
+    let (local, online) = (same(&server, LOCAL_LANGUAGETOOL), server.trim().is_empty() || same(&server, DEFAULT_SERVER));
     ui.horizontal(|ui| {
         ui.label(tl!("Server:"));
+        for (on, label, address) in [(local, "On this computer", LOCAL_LANGUAGETOOL), (online, "LanguageTool online", DEFAULT_SERVER)] {
+            if ui.radio(on, tl!(label)).clicked() && !on {
+                match app.run("ui.languageTool", json!({"server": address})) {
+                    Ok(_) => draft.0 = app.ui.language_tool.server.clone(),
+                    Err(e) => app.status(e),
+                }
+            }
+        }
+    });
+    let mut enter = false;
+    ui.horizontal(|ui| {
+        ui.label(tl!("Address:"));
         let r = ui.add(egui::TextEdit::singleline(&mut draft.0).hint_text(DEFAULT_SERVER).desired_width(300.0));
         enter |= r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
     });
