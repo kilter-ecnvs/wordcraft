@@ -236,6 +236,7 @@ impl<'a> Exempt<'a> {
             || plain == wordcraft_languagetool::DEFAULT_SERVER // the server box's hint: an address, not words
             || plain == "CONFIDENTIAL" // the watermark dialog's text: document content, kept as typed
             || plain == "Figure 1" // the caption dialog's sample: the label goes into the document as is
+            || crate::dialogs_insert::date_time_preview_matches(plain)
     }
 }
 
@@ -306,6 +307,7 @@ fn untranslated_interface_text() {
         "tableProperties",
         "pasteSpecial",
         "about",
+        "fontDownload",
         "contributors",
         "models",
         "languageData",
@@ -753,6 +755,7 @@ fn the_arabic_interface_is_mirrored_and_never_panics() {
         "enclose",
         "pasteSpecial",
         "about",
+        "fontDownload",
         "contributors",
         "models",
         "insertMergeField",

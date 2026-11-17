@@ -193,7 +193,7 @@ pub fn specs() -> Vec<CommandSpec> {
             set_colors(s, &t);
             sel_result(s)
         })
-        .params(r#"{"name": string}"#),
+        .params(r#"{"name": string (see design.themes)}"#),
         CommandSpec::new("design.createTheme", "Create New Theme", "Design › Document Formatting", create_theme).params(
             r#"{"name": string, "heading"?: font, "body"?: font, "accents"?: ["RRGGBB"; ≤6], "text"?: "RRGGBB", "background"?: "RRGGBB"}"#,
         ),
